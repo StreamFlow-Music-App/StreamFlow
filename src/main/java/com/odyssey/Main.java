@@ -1,28 +1,36 @@
 package com.odyssey;
 
-import com.odyssey.components.AudioPlayer;
+import com.odyssey.controllers.MainController;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 
 public class Main {
-    public static void main(String[] args) {
-        AudioPlayer player = new AudioPlayer();
+    public static void main(String[] args) throws IOException {
         Scanner scanner = new Scanner(System.in);
 
-        String songPath = "src/resources/songs/Believer(PagalWorld.com.so).mp3";
+        List<String> songs = new ArrayList<>();
+        songs.add("src/resources/songs/11086_Luis Fonsi ft. Daddy Yankee - Despacito SHOW2BABI.COM.mp3");
+        songs.add("src/resources/songs/Believer(PagalWorld.com.so).mp3");
+        songs.add("src/resources/songs/Imagine-Dragons-Bad-Liar-(RawPraise.ng).mp3");
 
-        System.out.println("Playing song...");
-        player.play(songPath);
+        MainController mainController = new MainController(songs);
+        mainController.start();
 
-        System.out.println(player.getCurrentSongPath());
+        while (true) {
+            System.out.println("Press 'p' to pause, 'r' to resume, 'n' for next, 'b' for previous, or 'Enter' to stop...");
+            String input = scanner.nextLine();
 
-        System.out.println("Press Enter to stop the song...");
-        scanner.nextLine();
+            if (input.isEmpty()) {
+                mainController.handleInput("stop");
+                break;
+            }
 
+            mainController.handleInput(input);
+        }
 
-
-        player.stop();
-        System.out.println("Song stopped.");
         scanner.close();
     }
 }

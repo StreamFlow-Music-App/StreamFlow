@@ -8,15 +8,24 @@ import java.io.IOException;
 
 public class AudioPlayer {
     private Player player;
+    private FileInputStream fileInputStream;
     private String currentSongPath;
+    private long pausePosition;
+    private boolean isPaused = false;
 
     public void play(String songPath) {
         try {
             stop();
 
             currentSongPath = songPath;
-            FileInputStream fileInputStream = new FileInputStream(currentSongPath);
+            fileInputStream = new FileInputStream(currentSongPath);
             player = new Player(fileInputStream);
+
+            if (isPaused) {
+                fileInputStream.skip(pausePosition);
+                isPaused = false;
+            }
+
             new Thread(() -> {
                 try {
                     player.play();
@@ -29,14 +38,25 @@ public class AudioPlayer {
         }
     }
 
+    public void pause() throws IOException {
+        if (player != null) {
+            pausePosition = fileInputStream.available();
+            player.close();
+            isPaused = true;
+        }
+    }
+
+    public void resume() {
+        if (isPaused) {
+            play(currentSongPath);
+        }
+    }
+
     public void stop() {
         if (player != null) {
             player.close();
             player = null;
+            isPaused = false;
         }
-    }
-
-    public String getCurrentSongPath() {
-        return currentSongPath;
     }
 }
