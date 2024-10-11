@@ -6,9 +6,17 @@ import java.io.IOException;
 
 public class PlayerController {
     private final AudioPlayer audioPlayer;
+    private final OnSongEndCallback onSongEndCallback;
 
-    public PlayerController() {
+    public PlayerController(OnSongEndCallback callBack) {
         this.audioPlayer = new AudioPlayer();
+        this.onSongEndCallback = callBack;
+
+        audioPlayer.setOnSongEndListener(()->{
+            if(onSongEndCallback != null){
+                onSongEndCallback.onSongEnd();
+            }
+        });
     }
 
     public void play(String songPath) {
@@ -25,5 +33,9 @@ public class PlayerController {
 
     public void stop() {
         audioPlayer.stop();
+    }
+
+    public interface OnSongEndCallback{
+        void onSongEnd();
     }
 }

@@ -13,6 +13,11 @@ public class AudioPlayer {
     private long pausePosition;
     private boolean isPaused = false;
 
+    private OnSongEndListener onSongEndListener;
+    public void setOnSongEndListener(OnSongEndListener listener){
+        this.onSongEndListener = listener;
+    }
+
     public void play(String songPath) {
         try {
             stop();
@@ -29,6 +34,9 @@ public class AudioPlayer {
             new Thread(() -> {
                 try {
                     player.play();
+                    if(player.isComplete() && onSongEndListener != null){
+                        onSongEndListener.onSongEnd();
+                    }
                 } catch (JavaLayerException e) {
                     e.printStackTrace();
                 }
@@ -58,5 +66,9 @@ public class AudioPlayer {
             player = null;
             isPaused = false;
         }
+    }
+
+    public interface OnSongEndListener{
+        void onSongEnd();
     }
 }

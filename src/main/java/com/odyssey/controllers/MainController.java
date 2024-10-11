@@ -11,7 +11,15 @@ public class MainController {
     public MainController(List<String> songs) {
         this.songs = songs;
         this.currentIndex = 0;
-        this.playerController = new PlayerController();
+        this.playerController = new PlayerController(() -> {
+            try {
+                playNextSong();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        });
+
+
     }
 
     public void start() throws IOException {
@@ -42,7 +50,9 @@ public class MainController {
     }
 
     private void playCurrentSong() throws IOException {
-        System.out.println("Playing song: " + songs.get(currentIndex));
+        System.out.println("-----------------------------------------------------------------------------");
+        System.out.println("Playing song: " + songs.get(currentIndex).split("/")[3]);
+        System.out.println("-----------------------------------------------------------------------------");
         playerController.play(songs.get(currentIndex));
     }
 

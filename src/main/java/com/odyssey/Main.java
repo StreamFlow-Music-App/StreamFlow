@@ -20,7 +20,11 @@ public class Main {
         mainController.start();
 
         while (true) {
-            System.out.println("Press 'p' to pause, 'r' to resume, 'n' for next, 'b' for previous, or 'Enter' to stop...");
+            System.out.println("Pause -> 'p'");
+            System.out.println("Resume -> 'r'");
+            System.out.println("Next Song -> 'n'");
+            System.out.println("Previous Song -> 'b'");
+            System.out.println("Stop -> Press Enter");
             String input = scanner.nextLine();
 
             if (input.isEmpty()) {
