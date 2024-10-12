@@ -9,20 +9,24 @@ public class Main {
         AudioPlayer player = new AudioPlayer();
         Scanner scanner = new Scanner(System.in);
 
-        String songPath = "src/resources/songs/Believer(PagalWorld.com.so).mp3";
-
+        String songPath = "src/resources/songs/Shubh - MVP (Official Music Video).mp3";
         System.out.println("Playing song...");
         player.play(songPath);
+        System.out.println("Press ENTER to pause/resume the song...");
 
-        System.out.println(player.getCurrentSongPath());
+        // Infinite loop to toggle between pause and play
+        while (true) {
+            // Wait for the user to press ENTER
+            scanner.nextLine();
 
-        System.out.println("Press Enter to stop the song...");
-        scanner.nextLine();
-
-
-
-        player.stop();
-        System.out.println("Song stopped.");
-        scanner.close();
+            // Toggle between play and pause
+            if (player.isPaused()) {
+                System.out.println("Resuming song...");
+                player.play(songPath);  // Resume playback
+            } else {
+                System.out.println("Pausing song...");
+                player.pause();  // Pause playback
+            }
+        }
     }
 }
