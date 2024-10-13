@@ -8,79 +8,67 @@ import java.io.IOException;
 
 public class AudioPlayer {
     private Player player;
-    private String currentSongPath;
     private FileInputStream fileInputStream;
-    private int pausedPosition = 0;  // Store the paused position in bytes
+    private String currentSongPath;
+    private long pausePosition;
     private boolean isPaused = false;
 
-    // Play or resume the song
+    private OnSongEndListener onSongEndListener;
+    public void setOnSongEndListener(OnSongEndListener listener){
+        this.onSongEndListener = listener;
+    }
+
     public void play(String songPath) {
         try {
-            if (isPaused && currentSongPath.equals(songPath)) {
-                // Resume from paused position
-                resume();
-            } else {
-                stop();
-                currentSongPath = songPath;
-                fileInputStream = new FileInputStream(currentSongPath);
-                player = new Player(fileInputStream);
-                playFromBeginning();
+            stop();
+
+            currentSongPath = songPath;
+            fileInputStream = new FileInputStream(currentSongPath);
+            player = new Player(fileInputStream);
+
+            if (isPaused) {
+                fileInputStream.skip(pausePosition);
+                isPaused = false;
             }
+
+            new Thread(() -> {
+                try {
+                    player.play();
+                    if(player.isComplete() && onSongEndListener != null){
+                        onSongEndListener.onSongEnd();
+                    }
+                } catch (JavaLayerException e) {
+                    e.printStackTrace();
+                }
+            }).start();
         } catch (JavaLayerException | IOException e) {
             e.printStackTrace();
         }
     }
 
-    // Method to pause the song
-    public void pause() {
+    public void pause() throws IOException {
         if (player != null) {
-            try {
-                pausedPosition = fileInputStream.available();  // Store remaining bytes to approximate the position
-                player.close();
-                isPaused = true;
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            pausePosition = fileInputStream.available();
+            player.close();
+            isPaused = true;
         }
     }
 
-    // Method to stop the player
+    public void resume() {
+        if (isPaused) {
+            play(currentSongPath);
+        }
+    }
+
     public void stop() {
         if (player != null) {
             player.close();
             player = null;
             isPaused = false;
-            pausedPosition = 0;
         }
     }
 
-    // Method to resume playback from paused position
-    private void resume() {
-        try {
-            fileInputStream = new FileInputStream(currentSongPath);
-            fileInputStream.skip(fileInputStream.available() - pausedPosition);  // Skip to the approximate position
-            player = new Player(fileInputStream);
-            playFromBeginning();
-            isPaused = false;
-        } catch (JavaLayerException | IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    // Helper to start playback in a new thread
-    private void playFromBeginning() {
-        new Thread(() -> {
-            try {
-                player.play();
-            } catch (JavaLayerException e) {
-                e.printStackTrace();
-            }
-        }).start();
-    }
-    public boolean isPaused() {
-        return isPaused;
-    }
-    public String getCurrentSongPath() {
-        return currentSongPath;
+    public interface OnSongEndListener{
+        void onSongEnd();
     }
 }
