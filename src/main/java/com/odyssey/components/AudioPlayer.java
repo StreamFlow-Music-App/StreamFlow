@@ -10,10 +10,11 @@ public class AudioPlayer {
     private Player player;
     private FileInputStream fileInputStream;
     private String currentSongPath;
-    private long pausePosition;
+    private long pausePosition = 0;
     private boolean isPaused = false;
 
     private OnSongEndListener onSongEndListener;
+
     public void setOnSongEndListener(OnSongEndListener listener) {
         this.onSongEndListener = listener;
     }
@@ -27,7 +28,6 @@ public class AudioPlayer {
             player = new Player(fileInputStream);
 
             if (isPaused) {
-                fileInputStream.skip(pausePosition);
                 isPaused = false;
             }
 
@@ -57,7 +57,12 @@ public class AudioPlayer {
 
     public void resume() {
         if (isPaused) {
-            play(currentSongPath);
+            try {
+                fileInputStream = new FileInputStream(currentSongPath);
+                play(currentSongPath);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -66,6 +71,7 @@ public class AudioPlayer {
             player.close();
             player = null;
             isPaused = false;
+            pausePosition = 0;
         }
     }
 
