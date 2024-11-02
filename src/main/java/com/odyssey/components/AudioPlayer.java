@@ -14,7 +14,7 @@ public class AudioPlayer {
     private boolean isPaused = false;
 
     private OnSongEndListener onSongEndListener;
-    public void setOnSongEndListener(OnSongEndListener listener){
+    public void setOnSongEndListener(OnSongEndListener listener) {
         this.onSongEndListener = listener;
     }
 
@@ -34,7 +34,7 @@ public class AudioPlayer {
             new Thread(() -> {
                 try {
                     player.play();
-                    if(player.isComplete() && onSongEndListener != null){
+                    if (player != null && player.isComplete() && onSongEndListener != null) {
                         onSongEndListener.onSongEnd();
                     }
                 } catch (JavaLayerException e) {
@@ -50,6 +50,7 @@ public class AudioPlayer {
         if (player != null) {
             pausePosition = fileInputStream.available();
             player.close();
+            player = null;
             isPaused = true;
         }
     }
@@ -68,7 +69,7 @@ public class AudioPlayer {
         }
     }
 
-    public interface OnSongEndListener{
+    public interface OnSongEndListener {
         void onSongEnd();
     }
 }
