@@ -59,7 +59,12 @@ public class MainController {
     }
 
     private void playCurrentSong() throws IOException {
-        System.out.println("Playing song: " + songs.get(currentIndex));
+        System.out.println();
+        System.out.println();
+        System.out.println("You are on: " + songs.get(currentIndex).split("/")[3]);
+        System.out.println("---------------------------------------------------------------");
+        System.out.println("Playing song: " + songs.get(currentIndex).split("/")[4]);
+        System.out.println("---------------------------------------------------------------");
         playerController.play(songs.get(currentIndex));
     }
 
