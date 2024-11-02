@@ -28,7 +28,7 @@ public class CommandHandler {
             } else if (input.startsWith("switch ")) {
                 handleSwitchCommand(input);
             } else {
-                mainController.handleInput(input);  // Directly pass valid commands
+                mainController.handleInput(input);
             }
         } catch (IOException e) {
             System.err.println("Error processing command: " + e.getMessage());
@@ -65,16 +65,13 @@ public class CommandHandler {
 
             if (Files.exists(Paths.get(newDirectory))) {
                 List<String> newSongs = FileUtils.loadSongsFromFolder(newDirectory);
+                mainController.stopCurrentSong();
 
-                if (!newSongs.isEmpty()) {
-                    mainController.setSongs(newSongs);
-                    try {
-                        mainController.start();  // Start the playback of the new playlist
-                    } catch (IOException e) {
-                        System.err.println("Error starting playback: " + e.getMessage());
-                    }
-                } else {
-                    System.out.println("Playlist '" + newPlaylist + "' is empty.");
+                mainController.setSongs(newSongs); // Update songs
+                try {
+                    mainController.start(); // Start playback
+                } catch (IOException e) {
+                    System.err.println("Error starting playback: " + e.getMessage());
                 }
             } else {
                 System.out.println("Playlist '" + newPlaylist + "' does not exist.");
@@ -83,4 +80,5 @@ public class CommandHandler {
             System.out.println("Invalid switch command. Use 'switch [playlist name]'.");
         }
     }
+
 }

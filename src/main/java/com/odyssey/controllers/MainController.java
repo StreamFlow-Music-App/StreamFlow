@@ -7,10 +7,12 @@ public class MainController {
     private final PlayerController playerController;
     private List<String> songs;
     private int currentIndex;
+    private boolean hasSongs; // New flag to check if songs are available
 
     public MainController(List<String> songs) {
         this.songs = songs;
         this.currentIndex = 0;
+        this.hasSongs = !songs.isEmpty(); // Initialize the flag based on the songs list
         this.playerController = new PlayerController(() -> {
             try {
                 playNextSong();
@@ -23,10 +25,11 @@ public class MainController {
     public void setSongs(List<String> newSongs) {
         this.songs = newSongs;
         this.currentIndex = 0;
+        this.hasSongs = !newSongs.isEmpty(); // Update the flag based on the new songs list
     }
 
     public void start() throws IOException {
-        if (songs.isEmpty()) {
+        if (!hasSongs) {
             System.out.println("No songs available in the current playlist.");
         } else {
             playCurrentSong();
@@ -34,6 +37,12 @@ public class MainController {
     }
 
     public void handleInput(String input) throws IOException {
+        // Check if there are no songs before processing commands
+        if (!hasSongs) {
+            System.out.println("No songs available. Please switch to a playlist with songs.");
+            return;
+        }
+
         switch (input.toLowerCase()) {
             case "p":
                 playerController.pause();
@@ -57,6 +66,8 @@ public class MainController {
                 System.out.println("Invalid command.");
         }
     }
+
+    // Rest of the code remains unchanged...
 
     private void playCurrentSong() throws IOException {
         System.out.println();
@@ -83,6 +94,15 @@ public class MainController {
             playCurrentSong();
         } else {
             System.out.println("You are at the first song. No previous song available.");
+        }
+    }
+
+    public void stopCurrentSong() {
+        try {
+            playerController.stop();
+            System.out.println("Current song stopped.");
+        } catch (Exception e) {
+            System.err.println("Error stopping the current song: " + e.getMessage());
         }
     }
 }
