@@ -3,18 +3,20 @@ package com.odyssey;
 import com.odyssey.controllers.MainController;
 
 import java.io.IOException;
+import java.nio.file.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class Main {
     public static void main(String[] args) throws IOException {
         Scanner scanner = new Scanner(System.in);
 
-        List<String> songs = new ArrayList<>();
-        songs.add("src/resources/songs/11086_Luis Fonsi ft. Daddy Yankee - Despacito SHOW2BABI.COM.mp3");
-        songs.add("src/resources/songs/Believer(PagalWorld.com.so).mp3");
-        songs.add("src/resources/songs/Imagine-Dragons-Bad-Liar-(RawPraise.ng).mp3");
+        String songsDirectory = "src/resources/songs";
+
+        List<String> songs = loadSongsFromFolder(songsDirectory);
 
         MainController mainController = new MainController(songs);
         mainController.start();
@@ -36,5 +38,21 @@ public class Main {
         }
 
         scanner.close();
+    }
+
+    private static List<String> loadSongsFromFolder(String directoryPath) {
+        List<String> songPaths = new ArrayList<>();
+
+        try (Stream<Path> paths = Files.walk(Paths.get(directoryPath))) {
+            songPaths = paths
+                    .filter(Files::isRegularFile)
+                    .filter(p -> p.toString().endsWith(".mp3"))
+                    .map(Path::toString)
+                    .collect(Collectors.toList());
+        } catch (IOException e) {
+            System.err.println("Error reading songs directory: " + e.getMessage());
+        }
+
+        return songPaths;
     }
 }
