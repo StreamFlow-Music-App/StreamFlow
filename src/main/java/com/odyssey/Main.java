@@ -14,10 +14,11 @@ public class Main {
     public static void main(String[] args) throws IOException {
         Scanner scanner = new Scanner(System.in);
 
-        String songsDirectory = "src/resources/songs";
+        String baseDirectory = "src/resources/playlists";
+        String initialPlaylist = "songs";
+        String currentDirectory = baseDirectory + "/" + initialPlaylist;
 
-        List<String> songs = loadSongsFromFolder(songsDirectory);
-
+        List<String> songs = loadSongsFromFolder(currentDirectory);
         MainController mainController = new MainController(songs);
         mainController.start();
 
@@ -26,15 +27,32 @@ public class Main {
             System.out.println("Resume -> 'r'");
             System.out.println("Next Song -> 'n'");
             System.out.println("Previous Song -> 'b'");
+            System.out.println("Switch Playlist -> 'switch [playlist name]'");
             System.out.println("Stop -> Press Enter");
             String input = scanner.nextLine();
 
             if (input.isEmpty()) {
                 mainController.handleInput("stop");
                 break;
-            }
+            } else if (input.startsWith("switch ")) {
+                String[] commandParts = input.split(" ", 2);
+                if (commandParts.length == 2) {
+                    String newPlaylist = commandParts[1];
+                    String newDirectory = baseDirectory + "/" + newPlaylist;
+                    List<String> newSongs = loadSongsFromFolder(newDirectory);
 
-            mainController.handleInput(input);
+                    if (!newSongs.isEmpty()) {
+                        mainController.setSongs(newSongs);
+                        mainController.start();
+                    } else {
+                        System.out.println("Playlist '" + newPlaylist + "' does not exist or is empty.");
+                    }
+                } else {
+                    System.out.println("Invalid switch command. Use 'switch [playlist name]'.");
+                }
+            } else {
+                mainController.handleInput(input);
+            }
         }
 
         scanner.close();

@@ -5,7 +5,7 @@ import java.util.List;
 
 public class MainController {
     private final PlayerController playerController;
-    private final List<String> songs;
+    private List<String> songs;
     private int currentIndex;
 
     public MainController(List<String> songs) {
@@ -18,12 +18,19 @@ public class MainController {
                 e.printStackTrace();
             }
         });
+    }
 
-
+    public void setSongs(List<String> newSongs) {
+        this.songs = newSongs;
+        this.currentIndex = 0;
     }
 
     public void start() throws IOException {
-        playCurrentSong();
+        if (songs.isEmpty()) {
+            System.out.println("No songs available in the current playlist.");
+        } else {
+            playCurrentSong();
+        }
     }
 
     public void handleInput(String input) throws IOException {
@@ -42,17 +49,17 @@ public class MainController {
             case "b":
                 playPreviousSong();
                 break;
-            default:
+            case "stop":
                 playerController.stop();
                 System.out.println("Song stopped.");
                 break;
+            default:
+                System.out.println("Invalid command.");
         }
     }
 
     private void playCurrentSong() throws IOException {
-        System.out.println("-----------------------------------------------------------------------------");
-        System.out.println("Playing song: " + songs.get(currentIndex).split("/")[3]);
-        System.out.println("-----------------------------------------------------------------------------");
+        System.out.println("Playing song: " + songs.get(currentIndex));
         playerController.play(songs.get(currentIndex));
     }
 
