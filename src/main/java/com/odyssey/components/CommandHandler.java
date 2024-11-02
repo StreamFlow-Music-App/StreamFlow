@@ -9,8 +9,8 @@ import java.nio.file.Paths;
 import java.util.List;
 
 public class CommandHandler {
-    private MainController mainController;
-    private String baseDirectory; // Add baseDirectory field
+    private final MainController mainController;
+    private final String baseDirectory; // Add baseDirectory field
 
     public CommandHandler(String baseDirectory, MainController mainController) {
         this.baseDirectory = baseDirectory;
