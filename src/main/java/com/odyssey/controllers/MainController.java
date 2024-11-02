@@ -1,16 +1,20 @@
 package com.odyssey.controllers;
 
+import com.odyssey.components.FavouriteManager;
+
 import java.io.IOException;
 import java.util.List;
 
 public class MainController {
     private final PlayerController playerController;
     private final List<String> songs;
+    private final FavouriteManager favouriteManager;
     private int currentIndex;
 
     public MainController(List<String> songs) {
         this.songs = songs;
         this.currentIndex = 0;
+        this.favouriteManager = new FavouriteManager(); // Initialize FavouriteManager
         this.playerController = new PlayerController(() -> {
             try {
                 playNextSong();
@@ -18,8 +22,6 @@ public class MainController {
                 e.printStackTrace();
             }
         });
-
-
     }
 
     public void start() throws IOException {
@@ -41,6 +43,9 @@ public class MainController {
                 break;
             case "b":
                 playPreviousSong();
+                break;
+            case "f":
+                addCurrentSongToFavorites();
                 break;
             default:
                 playerController.stop();
@@ -72,5 +77,11 @@ public class MainController {
         } else {
             System.out.println("You are at the first song. No previous song available.");
         }
+    }
+
+    private void addCurrentSongToFavorites() {
+        String currentSong = songs.get(currentIndex);
+        favouriteManager.addFavourite(currentSong);
+        System.out.println("Added to favorites: " + currentSong.split("/")[3]);
     }
 }

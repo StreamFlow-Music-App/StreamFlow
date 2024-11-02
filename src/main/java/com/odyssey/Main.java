@@ -24,6 +24,7 @@ public class Main {
             System.out.println("Resume -> 'r'");
             System.out.println("Next Song -> 'n'");
             System.out.println("Previous Song -> 'b'");
+            System.out.println("Add to Favorites -> 'f'");
             System.out.println("Stop -> Press Enter");
             String input = scanner.nextLine();
 
