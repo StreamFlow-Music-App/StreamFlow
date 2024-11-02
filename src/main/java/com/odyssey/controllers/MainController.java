@@ -7,7 +7,7 @@ public class MainController {
     private final PlayerController playerController;
     private List<String> songs;
     private int currentIndex;
-    private boolean hasSongs; // New flag to check if songs are available
+    private boolean hasSongs;
 
     public MainController(List<String> songs) {
         this.songs = songs;
@@ -25,7 +25,7 @@ public class MainController {
     public void setSongs(List<String> newSongs) {
         this.songs = newSongs;
         this.currentIndex = 0;
-        this.hasSongs = !newSongs.isEmpty(); // Update the flag based on the new songs list
+        this.hasSongs = !newSongs.isEmpty();
     }
 
     public void start() throws IOException {
@@ -37,7 +37,6 @@ public class MainController {
     }
 
     public void handleInput(String input) throws IOException {
-        // Check if there are no songs before processing commands
         if (!hasSongs) {
             System.out.println("No songs available. Please switch to a playlist with songs.");
             return;
@@ -66,8 +65,6 @@ public class MainController {
                 System.out.println("Invalid command.");
         }
     }
-
-    // Rest of the code remains unchanged...
 
     private void playCurrentSong() throws IOException {
         System.out.println();

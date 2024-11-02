@@ -1,6 +1,6 @@
 package com.odyssey.components;
 
-import com.odyssey.components.utils.FileUtils;
+import com.odyssey.components.utils.FileLoader;
 import com.odyssey.controllers.MainController;
 
 import java.io.IOException;
@@ -9,22 +9,22 @@ import java.nio.file.Paths;
 import java.util.List;
 
 public class CommandHandler {
-    private String baseDirectory;
     private MainController mainController;
+    private String baseDirectory; // Add baseDirectory field
 
     public CommandHandler(String baseDirectory, MainController mainController) {
         this.baseDirectory = baseDirectory;
         this.mainController = mainController;
     }
 
-    public void handleCommand(String input) {
+    public void handleCommand(String input, PlaylistManager playlistManager) {
         try {
             if (input.isEmpty()) {
                 mainController.handleInput("stop");
             } else if (input.startsWith("create ")) {
-                handleCreateCommand(input);
+                handleCreateCommand(input, playlistManager);
             } else if (input.startsWith("delete ")) {
-                handleDeleteCommand(input);
+                handleDeleteCommand(input, playlistManager);
             } else if (input.startsWith("switch ")) {
                 handleSwitchCommand(input);
             } else {
@@ -35,23 +35,21 @@ public class CommandHandler {
         }
     }
 
-    private void handleCreateCommand(String input) {
+    private void handleCreateCommand(String input, PlaylistManager playlistManager) {
         String[] commandParts = input.split(" ", 2);
         if (commandParts.length == 2) {
             String newPlaylist = commandParts[1];
-            String newDirectory = baseDirectory + "/" + newPlaylist;
-            FileUtils.createNewPlaylist(newDirectory);
+            playlistManager.createNewPlaylist(newPlaylist);
         } else {
             System.out.println("Invalid create command. Use 'create [playlist name]'.");
         }
     }
 
-    private void handleDeleteCommand(String input) {
+    private void handleDeleteCommand(String input, PlaylistManager playlistManager) {
         String[] commandParts = input.split(" ", 2);
         if (commandParts.length == 2) {
             String playlistToDelete = commandParts[1];
-            String directoryToDelete = baseDirectory + "/" + playlistToDelete;
-            FileUtils.deletePlaylist(directoryToDelete);
+            playlistManager.deletePlaylist(playlistToDelete);
         } else {
             System.out.println("Invalid delete command. Use 'delete [playlist name]'.");
         }
@@ -64,12 +62,12 @@ public class CommandHandler {
             String newDirectory = baseDirectory + "/" + newPlaylist;
 
             if (Files.exists(Paths.get(newDirectory))) {
-                List<String> newSongs = FileUtils.loadSongsFromFolder(newDirectory);
+                List<String> newSongs = FileLoader.loadSongsFromFolder(newDirectory);
                 mainController.stopCurrentSong();
 
-                mainController.setSongs(newSongs); // Update songs
+                mainController.setSongs(newSongs);
                 try {
-                    mainController.start(); // Start playback
+                    mainController.start();
                 } catch (IOException e) {
                     System.err.println("Error starting playback: " + e.getMessage());
                 }
@@ -80,5 +78,4 @@ public class CommandHandler {
             System.out.println("Invalid switch command. Use 'switch [playlist name]'.");
         }
     }
-
 }

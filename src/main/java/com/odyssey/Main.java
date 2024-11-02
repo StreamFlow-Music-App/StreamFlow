@@ -1,7 +1,8 @@
 package com.odyssey;
 
-import com.odyssey.components.utils.FileUtils;
 import com.odyssey.components.CommandHandler;
+import com.odyssey.components.PlaylistManager;
+import com.odyssey.components.utils.FileLoader;
 import com.odyssey.controllers.MainController;
 
 import java.io.IOException;
@@ -15,18 +16,19 @@ public class Main {
             String initialPlaylist = "songs";
             String currentDirectory = baseDirectory + "/" + initialPlaylist;
 
-            List<String> songs = FileUtils.loadSongsFromFolder(currentDirectory);
+            List<String> songs = FileLoader.loadSongsFromFolder(currentDirectory);
             MainController mainController = new MainController(songs);
             mainController.start();
 
             CommandHandler commandHandler = new CommandHandler(baseDirectory, mainController);
+            PlaylistManager playlistManager = new PlaylistManager(baseDirectory);
 
             while (true) {
                 displayCommands();
                 String input = scanner.nextLine();
-                commandHandler.handleCommand(input);
+                commandHandler.handleCommand(input, playlistManager);
                 if (input.isEmpty()) {
-                    break;  // Exit the loop if input is empty
+                    break;
                 }
             }
         } catch (IOException e) {
