@@ -2,23 +2,28 @@ package com.odyssey.components;
 
 import com.odyssey.components.utils.FileLoader;
 import com.odyssey.controllers.MainController;
+import com.odyssey.services.PlaylistService; // Import PlaylistService
 
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class CommandHandler {
     private final MainController mainController;
+    private final PlaylistService playlistService; // Add PlaylistService instance
     private final String baseDirectory;
     private String newDirectory;
 
-    public CommandHandler(String baseDirectory, MainController mainController) {
+    public CommandHandler(String baseDirectory, MainController mainController, PlaylistService playlistService) {
         this.baseDirectory = baseDirectory;
         this.mainController = mainController;
+        this.playlistService = playlistService; // Initialize PlaylistService
     }
 
-    public void handleCommand(String input, PlaylistManager playlistManager) {
+    public void handleCommand(String input, PlaylistManager playlistManager, String currentDirectory) {
         try {
             if (input.isEmpty()) {
                 mainController.handleInput("stop");
@@ -28,11 +33,64 @@ public class CommandHandler {
                 handleDeleteCommand(input, playlistManager);
             } else if (input.startsWith("switch ")) {
                 handleSwitchCommand(input);
+            } else if (input.equals("add song")) {
+                handleAddSong(currentDirectory);
+            } else if (input.equals("remove song")) {
+                handleRemoveSong();
             } else {
                 mainController.handleInput(input);
             }
         } catch (IOException e) {
             System.err.println("Error processing command: " + e.getMessage());
+        }
+    }
+
+    private void handleAddSong(String currentDirectory) throws IOException {
+        List<Path> availableSongs = Files.list(Paths.get(currentDirectory))
+                .collect(Collectors.toList());
+
+        System.out.println("Available songs:");
+        for (int i = 0; i < availableSongs.size(); i++) {
+            System.out.println(i + ": " + availableSongs.get(i).getFileName());
+        }
+
+        System.out.print("Enter the index of the song you want to add: ");
+        int songIndex = Integer.parseInt(new java.util.Scanner(System.in).nextLine());
+
+        if (songIndex >= 0 && songIndex < availableSongs.size()) {
+            Path sourceDirectory = availableSongs.get(songIndex);
+            Path destinationDirectory = Paths.get(newDirectory, sourceDirectory.getFileName().toString());
+
+            // Use PlaylistService to add the song to the playlist
+            playlistService.addSong(destinationDirectory.toString(), sourceDirectory.toString());
+            List<String> songs = FileLoader.loadSongsFromFolder(newDirectory);
+            mainController.setSongs(songs);
+        } else {
+            System.out.println("Invalid index. Please try again.");
+        }
+    }
+
+    private void handleRemoveSong() throws IOException {
+        List<Path> currentPlaylistSongs = Files.list(Paths.get(newDirectory))
+                .collect(Collectors.toList());
+
+        System.out.println("Current songs in the playlist:");
+        for (int i = 0; i < currentPlaylistSongs.size(); i++) {
+            System.out.println(i + ": " + currentPlaylistSongs.get(i).getFileName());
+        }
+
+        System.out.print("Enter the index of the song you want to remove: ");
+        int removeIndex = Integer.parseInt(new java.util.Scanner(System.in).nextLine());
+
+        if (removeIndex >= 0 && removeIndex < currentPlaylistSongs.size()) {
+            Path songToRemove = currentPlaylistSongs.get(removeIndex);
+
+            // Use PlaylistService to remove the song from the playlist
+            playlistService.removeSong(songToRemove.toString());
+            List<String> songs = FileLoader.loadSongsFromFolder(newDirectory);
+            mainController.setSongs(songs);
+        } else {
+            System.out.println("Invalid index. Please try again.");
         }
     }
 
@@ -61,7 +119,6 @@ public class CommandHandler {
         if (commandParts.length == 2) {
             String newPlaylist = commandParts[1];
             newDirectory = baseDirectory + "/" + newPlaylist;
-            System.out.println("From command handler: " + newDirectory);
 
             if (Files.exists(Paths.get(newDirectory))) {
                 List<String> newSongs = FileLoader.loadSongsFromFolder(newDirectory);
