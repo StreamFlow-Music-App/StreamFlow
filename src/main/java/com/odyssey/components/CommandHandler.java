@@ -10,7 +10,8 @@ import java.util.List;
 
 public class CommandHandler {
     private final MainController mainController;
-    private final String baseDirectory; // Add baseDirectory field
+    private final String baseDirectory;
+    private String newDirectory;
 
     public CommandHandler(String baseDirectory, MainController mainController) {
         this.baseDirectory = baseDirectory;
@@ -59,7 +60,8 @@ public class CommandHandler {
         String[] commandParts = input.split(" ", 2);
         if (commandParts.length == 2) {
             String newPlaylist = commandParts[1];
-            String newDirectory = baseDirectory + "/" + newPlaylist;
+            newDirectory = baseDirectory + "/" + newPlaylist;
+            System.out.println("From command handler: " + newDirectory);
 
             if (Files.exists(Paths.get(newDirectory))) {
                 List<String> newSongs = FileLoader.loadSongsFromFolder(newDirectory);
@@ -77,5 +79,9 @@ public class CommandHandler {
         } else {
             System.out.println("Invalid switch command. Use 'switch [playlist name]'.");
         }
+    }
+
+    public String getNewDirectory() {
+        return newDirectory;
     }
 }
