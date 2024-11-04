@@ -2,7 +2,7 @@ package com.odyssey.components;
 
 import com.odyssey.components.utils.FileLoader;
 import com.odyssey.controllers.MainController;
-import com.odyssey.services.PlaylistService; // Import PlaylistService
+import com.odyssey.services.PlaylistService;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -13,14 +13,14 @@ import java.util.stream.Collectors;
 
 public class CommandHandler {
     private final MainController mainController;
-    private final PlaylistService playlistService; // Add PlaylistService instance
+    private final PlaylistService playlistService;
     private final String baseDirectory;
     private String newDirectory;
 
     public CommandHandler(String baseDirectory, MainController mainController, PlaylistService playlistService) {
         this.baseDirectory = baseDirectory;
         this.mainController = mainController;
-        this.playlistService = playlistService; // Initialize PlaylistService
+        this.playlistService = playlistService;
     }
 
     public void handleCommand(String input, PlaylistManager playlistManager, String currentDirectory) {
@@ -61,7 +61,6 @@ public class CommandHandler {
             Path sourceDirectory = availableSongs.get(songIndex);
             Path destinationDirectory = Paths.get(newDirectory, sourceDirectory.getFileName().toString());
 
-            // Use PlaylistService to add the song to the playlist
             playlistService.addSong(destinationDirectory.toString(), sourceDirectory.toString());
             List<String> songs = FileLoader.loadSongsFromFolder(newDirectory);
             mainController.setSongs(songs);
@@ -85,7 +84,6 @@ public class CommandHandler {
         if (removeIndex >= 0 && removeIndex < currentPlaylistSongs.size()) {
             Path songToRemove = currentPlaylistSongs.get(removeIndex);
 
-            // Use PlaylistService to remove the song from the playlist
             playlistService.removeSong(songToRemove.toString());
             List<String> songs = FileLoader.loadSongsFromFolder(newDirectory);
             mainController.setSongs(songs);
