@@ -67,14 +67,21 @@ public class MainController {
     }
 
     private void playCurrentSong() throws IOException {
+        String[] songParts = songs.get(currentIndex).split("/");
+
+        String albumName = (songParts.length > 3) ? songParts[3] : "Unknown Album";
+        String songName = (songParts.length > 4) ? songParts[4] : "Unknown Song";
+
         System.out.println();
         System.out.println();
-        System.out.println("You are on: " + songs.get(currentIndex).split("/")[3]);
+        System.out.println("You are on: " + albumName);
         System.out.println("---------------------------------------------------------------");
-        System.out.println("Playing song: " + songs.get(currentIndex).split("/")[4]);
+        System.out.println("Playing song: " + songName);
         System.out.println("---------------------------------------------------------------");
+
         playerController.play(songs.get(currentIndex));
     }
+
 
     private void playNextSong() throws IOException {
         if (currentIndex < songs.size() - 1) {
