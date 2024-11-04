@@ -12,7 +12,7 @@ public class MainController {
     public MainController(List<String> songs) {
         this.songs = songs;
         this.currentIndex = 0;
-        this.hasSongs = !songs.isEmpty(); // Initialize the flag based on the songs list
+        this.hasSongs = !songs.isEmpty();
         this.playerController = new PlayerController(() -> {
             try {
                 playNextSong();
