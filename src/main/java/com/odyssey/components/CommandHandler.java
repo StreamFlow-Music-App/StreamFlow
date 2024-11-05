@@ -25,6 +25,8 @@ public class CommandHandler {
 
     // CommandHandler.java
 
+// CommandHandler.java
+
     public void handleCommand(String input, PlaylistManager playlistManager, String currentDirectory) {
         try {
             if (input.isEmpty()) {
@@ -41,6 +43,8 @@ public class CommandHandler {
                 handleRemoveSong();
             } else if (input.equals("s")) {  // Check if the command is for searching
                 handleSearchCommand();
+            } else if (input.equalsIgnoreCase("c")) {  // Toggle shuffle mode
+                mainController.toggleShuffle();
             } else {
                 mainController.handleInput(input);
             }
@@ -48,6 +52,7 @@ public class CommandHandler {
             System.err.println("Error processing command: " + e.getMessage());
         }
     }
+
 
     private void handleSearchCommand() {
         System.out.print("Enter song name to search [Song name - Artist name] : " );

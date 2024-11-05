@@ -1,19 +1,26 @@
+// MainController.java
+
 package com.odyssey.controllers;
 
+import com.odyssey.services.ShuffleService;
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.List;
 
 public class MainController {
     private final PlayerController playerController;
+    private final ShuffleService shuffleService;
     private List<String> songs;
     private int currentIndex;
     private boolean hasSongs;
+    private boolean isShuffleEnabled;
 
     public MainController(List<String> songs) {
         this.songs = songs;
         this.currentIndex = 0;
         this.hasSongs = !songs.isEmpty();
+        this.shuffleService = new ShuffleService();
+        this.isShuffleEnabled = false;
         this.playerController = new PlayerController(() -> {
             try {
                 playNextSong();
@@ -34,6 +41,16 @@ public class MainController {
             System.out.println("No songs available in the current playlist.");
         } else {
             playCurrentSong();
+        }
+    }
+
+    public void toggleShuffle() {
+        isShuffleEnabled = !isShuffleEnabled;
+        if (isShuffleEnabled) {
+            shuffleService.initializeShuffle(songs.size());
+            System.out.println("Shuffle mode is ON.");
+        } else {
+            System.out.println("Shuffle mode is OFF.");
         }
     }
 
@@ -89,21 +106,26 @@ public class MainController {
     }
 
     private void playNextSong() throws IOException {
-        if (currentIndex < songs.size() - 1) {
-            currentIndex++;
-            playCurrentSong();
+        if (isShuffleEnabled) {
+            currentIndex = shuffleService.getNextShuffledIndex();
         } else {
-            System.out.println("You are at the last song. No next song available.");
+            if (currentIndex < songs.size() - 1) {
+                currentIndex++;
+            } else {
+                System.out.println("You are at the last song. No next song available.");
+                return;
+            }
         }
+        playCurrentSong();
     }
 
     private void playPreviousSong() throws IOException {
-        if (currentIndex > 0) {
+        if (!isShuffleEnabled && currentIndex > 0) {
             currentIndex--;
-            playCurrentSong();
         } else {
             System.out.println("You are at the first song. No previous song available.");
         }
+        playCurrentSong();
     }
 
     public void stopCurrentSong() {
@@ -127,9 +149,9 @@ public class MainController {
                 } catch (IOException e) {
                     System.err.println("Error playing the song: " + e.getMessage());
                 }
-                return true;  // Song found and played
+                return true;
             }
         }
-        return false;  // Song not found
+        return false;
     }
 }
