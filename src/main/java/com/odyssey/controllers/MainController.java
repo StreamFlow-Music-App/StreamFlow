@@ -1,6 +1,7 @@
 package com.odyssey.controllers;
 
 import java.io.IOException;
+import java.nio.file.Paths;
 import java.util.List;
 
 public class MainController {
@@ -67,10 +68,15 @@ public class MainController {
     }
 
     private void playCurrentSong() throws IOException {
-        String[] songParts = songs.get(currentIndex).split("/");
+        String songPath = songs.get(currentIndex);
+        String[] songParts = songPath.split("/");
 
+        // Extract the song name from the last part of the path and remove any prefixes like "11086_"
+        String rawSongName = songParts[songParts.length - 1];
+        String songName = rawSongName.contains("_") ? rawSongName.substring(rawSongName.indexOf("_") + 1) : rawSongName;
+
+        // Use album name if available in the path; otherwise, set it to "Unknown Album"
         String albumName = (songParts.length > 3) ? songParts[3] : "Unknown Album";
-        String songName = (songParts.length > 4) ? songParts[4] : "Unknown Song";
 
         System.out.println();
         System.out.println();
@@ -79,9 +85,8 @@ public class MainController {
         System.out.println("Playing song: " + songName);
         System.out.println("---------------------------------------------------------------");
 
-        playerController.play(songs.get(currentIndex));
+        playerController.play(songPath);
     }
-
 
     private void playNextSong() throws IOException {
         if (currentIndex < songs.size() - 1) {
@@ -108,5 +113,23 @@ public class MainController {
         } catch (Exception e) {
             System.err.println("Error stopping the current song: " + e.getMessage());
         }
+    }
+
+    public boolean searchAndPlaySong(String songName) {
+        for (int i = 0; i < songs.size(); i++) {
+            String path = songs.get(i);
+            String fileName = Paths.get(path).getFileName().toString();
+
+            if (fileName.equalsIgnoreCase(songName + ".mp3")) {
+                currentIndex = i;
+                try {
+                    playCurrentSong();
+                } catch (IOException e) {
+                    System.err.println("Error playing the song: " + e.getMessage());
+                }
+                return true;  // Song found and played
+            }
+        }
+        return false;  // Song not found
     }
 }
