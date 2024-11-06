@@ -51,6 +51,8 @@ public class Main {
         System.out.println("Resume -> 'r'");
         System.out.println("Search song -> 's'");  // Add search option
         System.out.println("Shuffle song -> 'shuf'");
+        System.out.println("Sort song -> 'sort" +
+                "'");
 
         if (!Objects.equals(directory, null) && !Objects.equals(directory, "src/resources/playlists/songs")) {
             System.out.println("Add song -> 'add song'");

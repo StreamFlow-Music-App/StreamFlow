@@ -2,24 +2,29 @@ package com.odyssey.controllers;
 
 import com.odyssey.services.SearchService;
 import com.odyssey.services.ShuffleService;
+import com.odyssey.services.SortService;
 
 import java.io.IOException;
+import java.nio.file.Paths;
 import java.util.List;
 
 public class MainController {
     private final PlayerController playerController;
     private final SearchService searchService;
-    private ShuffleService shuffleService = new ShuffleService();
+    private final ShuffleService shuffleService;
+    private final SortService sortService;
     private List<String> songs;
     private int currentIndex;
     private boolean hasSongs;
 
     public MainController(List<String> songs) {
-        this.shuffleService = shuffleService;
+
         this.songs = songs;
         this.currentIndex = 0;
         this.hasSongs = !songs.isEmpty();
         this.searchService = new SearchService();
+        this.shuffleService = new ShuffleService();
+        this.sortService = new SortService();
         this.playerController = new PlayerController(() -> {
             try {
                 playNextSong();
@@ -124,10 +129,10 @@ public class MainController {
     }
 
     public boolean searchAndPlaySong(String songName) {
-        List<String> matchingSongs = searchService.searchSongsByName(songs, songName);
+        List<Integer> matchingSongs = searchService.searchSongsByName(songs, songName);
 
         if (!matchingSongs.isEmpty()) {
-            String songPath = matchingSongs.get(0); // Play the first match
+            String songPath = String.valueOf(matchingSongs.get(0)); // Play the first match
             currentIndex = songs.indexOf(songPath);
             try {
                 playCurrentSong();
@@ -145,4 +150,11 @@ public class MainController {
         currentIndex = 0;  // Reset to the beginning after shuffling
         System.out.println("Playlist shuffled.");
     }
+    public void sortPlaylist() {
+        sortService.sortSongsByName(songs);
+        currentIndex = 0;  // Reset to the beginning after sorting
+        System.out.println("Playlist sorted alphabetically by song name.");
+    }
+
+
 }

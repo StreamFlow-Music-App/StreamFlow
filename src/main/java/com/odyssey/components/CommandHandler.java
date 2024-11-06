@@ -3,6 +3,8 @@ package com.odyssey.components;
 import com.odyssey.components.utils.FileLoader;
 import com.odyssey.controllers.MainController;
 import com.odyssey.services.PlaylistService;
+import com.odyssey.services.SearchService;
+import com.odyssey.services.SortService;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -16,6 +18,8 @@ public class CommandHandler {
     private final PlaylistService playlistService;
     private final String baseDirectory;
     private String newDirectory;
+    private final SearchService searchService = new SearchService();
+    private final SortService sortService = new SortService();
 
     public CommandHandler(String baseDirectory, MainController mainController, PlaylistService playlistService) {
         this.baseDirectory = baseDirectory;
@@ -39,10 +43,14 @@ public class CommandHandler {
                 handleAddSong(currentDirectory);
             } else if (input.equals("remove song")) {
                 handleRemoveSong();
-            }else if (input.equals("shuf")) {  // New shuffle command
+            }else if (input.equals("shuf")) {
                 mainController.shufflePlaylist();
-            } else if (input.equals("s")) {  // Check if the command is for searching
+            } else if (input.equals("sort")) {
+                mainController.sortPlaylist();
+            } else if (input.equals("s")) {
                 handleSearchCommand();
+            } else if (input.equals("sort")) {  // Detect the "sort" command for sorting
+                mainController.sortPlaylist();
             } else {
                 mainController.handleInput(input);
             }
