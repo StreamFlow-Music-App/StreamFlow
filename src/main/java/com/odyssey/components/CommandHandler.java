@@ -23,6 +23,7 @@ public class CommandHandler {
         this.playlistService = playlistService;
     }
 
+
     public void handleCommand(String input, PlaylistManager playlistManager, String currentDirectory) {
         try {
             if (input.isEmpty()) {
@@ -37,11 +38,27 @@ public class CommandHandler {
                 handleAddSong(currentDirectory);
             } else if (input.equals("remove song")) {
                 handleRemoveSong();
+            } else if (input.equals("s")) {  // Check if the command is for searching
+                handleSearchCommand();
+            } else if (input.equalsIgnoreCase("c")) {  // Toggle shuffle mode
+                mainController.toggleShuffle();
             } else {
                 mainController.handleInput(input);
             }
         } catch (IOException e) {
             System.err.println("Error processing command: " + e.getMessage());
+        }
+    }
+
+
+    private void handleSearchCommand() {
+        System.out.print("Enter song name to search [Song name - Artist name] : ");
+        String songName = new java.util.Scanner(System.in).nextLine();
+
+        if (mainController.searchAndPlaySong(songName)) {
+            System.out.println("Playing searched song: " + songName);
+        } else {
+            System.out.println("Song not available.");
         }
     }
 
@@ -130,6 +147,7 @@ public class CommandHandler {
                 }
             } else {
                 System.out.println("Playlist '" + newPlaylist + "' does not exist.");
+                newDirectory = null;
             }
         } else {
             System.out.println("Invalid switch command. Use 'switch [playlist name]'.");
