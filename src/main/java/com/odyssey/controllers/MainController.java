@@ -1,5 +1,3 @@
-// MainController.java
-
 package com.odyssey.controllers;
 
 import com.odyssey.services.ShuffleService;
@@ -88,11 +86,9 @@ public class MainController {
         String songPath = songs.get(currentIndex);
         String[] songParts = songPath.split("/");
 
-        // Extract the song name from the last part of the path and remove any prefixes like "11086_"
         String rawSongName = songParts[songParts.length - 1];
         String songName = rawSongName.contains("_") ? rawSongName.substring(rawSongName.indexOf("_") + 1) : rawSongName;
 
-        // Use album name if available in the path; otherwise, set it to "Unknown Album"
         String albumName = (songParts.length > 3) ? songParts[3] : "Unknown Album";
 
         System.out.println();

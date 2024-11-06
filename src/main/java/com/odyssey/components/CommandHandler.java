@@ -23,9 +23,6 @@ public class CommandHandler {
         this.playlistService = playlistService;
     }
 
-    // CommandHandler.java
-
-// CommandHandler.java
 
     public void handleCommand(String input, PlaylistManager playlistManager, String currentDirectory) {
         try {
