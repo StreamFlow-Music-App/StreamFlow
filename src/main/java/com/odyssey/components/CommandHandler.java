@@ -130,6 +130,7 @@ public class CommandHandler {
                 }
             } else {
                 System.out.println("Playlist '" + newPlaylist + "' does not exist.");
+                newDirectory = null;
             }
         } else {
             System.out.println("Invalid switch command. Use 'switch [playlist name]'.");
