@@ -47,6 +47,8 @@ public class Main {
         System.out.println("Previous Song -> 'b'");
         System.out.println("Pause -> 'p'");
         System.out.println("Resume -> 'r'");
+        System.out.println("Search song -> 's'");
+        System.out.println("Shuffle Play -> 'c'");
 
         if (!Objects.equals(directory, null) && !Objects.equals(directory, "src/resources/playlists/songs")) {
             System.out.println("Add song -> 'add song'");
