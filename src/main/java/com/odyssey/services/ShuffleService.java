@@ -1,5 +1,3 @@
-// ShuffleService.java
-
 package com.odyssey.services;
 
 import java.util.Collections;

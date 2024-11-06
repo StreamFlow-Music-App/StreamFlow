@@ -38,9 +38,9 @@ public class CommandHandler {
                 handleAddSong(currentDirectory);
             } else if (input.equals("remove song")) {
                 handleRemoveSong();
-            } else if (input.equals("s")) {  // Check if the command is for searching
+            } else if (input.equals("s")) {
                 handleSearchCommand();
-            } else if (input.equalsIgnoreCase("c")) {  // Toggle shuffle mode
+            } else if (input.equalsIgnoreCase("c")) {  
                 mainController.toggleShuffle();
             } else {
                 mainController.handleInput(input);
