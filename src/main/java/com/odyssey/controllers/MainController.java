@@ -1,19 +1,25 @@
 package com.odyssey.controllers;
 
+import com.odyssey.services.SearchService;
+import com.odyssey.services.ShuffleService;
+
 import java.io.IOException;
-import java.nio.file.Paths;
 import java.util.List;
 
 public class MainController {
     private final PlayerController playerController;
+    private final SearchService searchService;
+    private ShuffleService shuffleService = new ShuffleService();
     private List<String> songs;
     private int currentIndex;
     private boolean hasSongs;
 
     public MainController(List<String> songs) {
+        this.shuffleService = shuffleService;
         this.songs = songs;
         this.currentIndex = 0;
         this.hasSongs = !songs.isEmpty();
+        this.searchService = new SearchService();
         this.playerController = new PlayerController(() -> {
             try {
                 playNextSong();
@@ -22,6 +28,8 @@ public class MainController {
             }
         });
     }
+
+
 
     public void setSongs(List<String> newSongs) {
         this.songs = newSongs;
@@ -116,20 +124,25 @@ public class MainController {
     }
 
     public boolean searchAndPlaySong(String songName) {
-        for (int i = 0; i < songs.size(); i++) {
-            String path = songs.get(i);
-            String fileName = Paths.get(path).getFileName().toString();
+        List<String> matchingSongs = searchService.searchSongsByName(songs, songName);
 
-            if (fileName.equalsIgnoreCase(songName + ".mp3")) {
-                currentIndex = i;
-                try {
-                    playCurrentSong();
-                } catch (IOException e) {
-                    System.err.println("Error playing the song: " + e.getMessage());
-                }
-                return true;  // Song found and played
+        if (!matchingSongs.isEmpty()) {
+            String songPath = matchingSongs.get(0); // Play the first match
+            currentIndex = songs.indexOf(songPath);
+            try {
+                playCurrentSong();
+            } catch (IOException e) {
+                System.err.println("Error playing the song: " + e.getMessage());
             }
+            return true;
+        } else {
+            return false;
         }
-        return false;  // Song not found
+    }
+
+    public void shufflePlaylist() {
+        shuffleService.shuffleSongs(songs);
+        currentIndex = 0;  // Reset to the beginning after shuffling
+        System.out.println("Playlist shuffled.");
     }
 }

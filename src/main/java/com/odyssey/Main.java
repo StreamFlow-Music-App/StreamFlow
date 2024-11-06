@@ -42,11 +42,15 @@ public class Main {
         }
     }
 
+    // Main.java
+
     private static void displayCommands(String directory) {
         System.out.println("Next Song -> 'n'");
         System.out.println("Previous Song -> 'b'");
         System.out.println("Pause -> 'p'");
         System.out.println("Resume -> 'r'");
+        System.out.println("Search song -> 's'");  // Add search option
+        System.out.println("Shuffle song -> 'shuf'");
 
         if (!Objects.equals(directory, null) && !Objects.equals(directory, "src/resources/playlists/songs")) {
             System.out.println("Add song -> 'add song'");
@@ -58,4 +62,5 @@ public class Main {
         System.out.println("Switch Playlist -> 'switch [playlist name]'");
         System.out.println("Stop -> Press Enter");
     }
+
 }

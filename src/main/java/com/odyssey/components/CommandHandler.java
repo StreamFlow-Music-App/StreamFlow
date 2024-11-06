@@ -23,6 +23,8 @@ public class CommandHandler {
         this.playlistService = playlistService;
     }
 
+    // CommandHandler.java
+
     public void handleCommand(String input, PlaylistManager playlistManager, String currentDirectory) {
         try {
             if (input.isEmpty()) {
@@ -37,11 +39,26 @@ public class CommandHandler {
                 handleAddSong(currentDirectory);
             } else if (input.equals("remove song")) {
                 handleRemoveSong();
+            }else if (input.equals("shuf")) {  // New shuffle command
+                mainController.shufflePlaylist();
+            } else if (input.equals("s")) {  // Check if the command is for searching
+                handleSearchCommand();
             } else {
                 mainController.handleInput(input);
             }
         } catch (IOException e) {
             System.err.println("Error processing command: " + e.getMessage());
+        }
+    }
+
+    private void handleSearchCommand() {
+        System.out.print("Enter song name to search: ");
+        String songName = new java.util.Scanner(System.in).nextLine();
+
+        if (mainController.searchAndPlaySong(songName)) {
+            System.out.println("Playing searched song: " + songName);
+        } else {
+            System.out.println("Song not available.");
         }
     }
 
