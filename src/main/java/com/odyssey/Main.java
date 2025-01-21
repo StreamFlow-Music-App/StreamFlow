@@ -6,13 +6,22 @@ import com.odyssey.components.utils.FileLoader;
 import com.odyssey.controllers.MainController;
 import com.odyssey.services.PlaylistService;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.List;
 import java.util.Objects;
 import java.util.Scanner;
 
 public class Main {
+
     public static void main(String[] args) {
+        if (!authenticateUser()) {
+            System.out.println("Invalid credentials. Exiting application.");
+            return;
+        }
+
         try (Scanner scanner = new Scanner(System.in)) {
             String baseDirectory = "src/resources/playlists";
             String initialPlaylist = "songs";
@@ -60,4 +69,31 @@ public class Main {
         System.out.println("Switch Playlist -> 'switch [playlist name]'");
         System.out.println("Stop -> Press Enter");
     }
+
+    private static boolean authenticateUser() {
+        Scanner scanner = new Scanner(System.in);
+        System.out.print("Enter username: ");
+        String username = scanner.nextLine();
+        System.out.print("Enter password: ");
+        String password = scanner.nextLine();
+
+        return authenticate(username, password);
+    }
+
+    private static boolean authenticate(String username, String password) {
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(
+                Objects.requireNonNull(Main.class.getClassLoader().getResourceAsStream("login.txt"))))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                String[] credentials = line.split(",");
+                if (credentials[0].trim().equals(username) && credentials[1].trim().equals(password)) {
+                    return true;
+                }
+            }
+        } catch (IOException | NullPointerException e) {
+            System.err.println("Error reading login file: " + e.getMessage());
+        }
+        return false;
+    }
+
 }
