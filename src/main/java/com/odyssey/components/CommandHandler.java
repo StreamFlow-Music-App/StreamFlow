@@ -3,8 +3,6 @@ package com.odyssey.components;
 import com.odyssey.components.utils.FileLoader;
 import com.odyssey.controllers.MainController;
 import com.odyssey.services.PlaylistService;
-import com.odyssey.services.SearchService;
-import com.odyssey.services.SortService;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -18,16 +16,12 @@ public class CommandHandler {
     private final PlaylistService playlistService;
     private final String baseDirectory;
     private String newDirectory;
-    private final SearchService searchService = new SearchService();
-    private final SortService sortService = new SortService();
 
     public CommandHandler(String baseDirectory, MainController mainController, PlaylistService playlistService) {
         this.baseDirectory = baseDirectory;
         this.mainController = mainController;
         this.playlistService = playlistService;
     }
-
-    // CommandHandler.java
 
     public void handleCommand(String input, PlaylistManager playlistManager, String currentDirectory) {
         try {
@@ -43,14 +37,13 @@ public class CommandHandler {
                 handleAddSong(currentDirectory);
             } else if (input.equals("remove song")) {
                 handleRemoveSong();
-            }else if (input.equals("shuf")) {
-                mainController.shufflePlaylist();
-            } else if (input.equals("sort")) {
-                mainController.sortPlaylist();
             } else if (input.equals("s")) {
                 handleSearchCommand();
-            } else if (input.equals("sort")) {  // Detect the "sort" command for sorting
-                mainController.sortPlaylist();
+            } else if (input.equalsIgnoreCase("c")) {
+                mainController.toggleShuffle();
+            } else if (input.equalsIgnoreCase("view playlist")) {
+            System.out.println("Executing handleViewPlaylist");
+            handleViewPlaylist();
             } else {
                 mainController.handleInput(input);
             }
@@ -60,7 +53,7 @@ public class CommandHandler {
     }
 
     private void handleSearchCommand() {
-        System.out.print("Enter song name to search: ");
+        System.out.print("Enter song name to search [Song name - Artist name] : ");
         String songName = new java.util.Scanner(System.in).nextLine();
 
         if (mainController.searchAndPlaySong(songName)) {
@@ -71,6 +64,11 @@ public class CommandHandler {
     }
 
     private void handleAddSong(String currentDirectory) throws IOException {
+        if (newDirectory == null || !Files.exists(Paths.get(newDirectory))) {
+            System.out.println("No playlist selected or playlist directory does not exist. Please create or switch to a playlist first.");
+            return;
+        }
+
         List<Path> availableSongs = Files.list(Paths.get(currentDirectory))
                 .collect(Collectors.toList());
 
@@ -89,10 +87,13 @@ public class CommandHandler {
             playlistService.addSong(destinationDirectory.toString(), sourceDirectory.toString());
             List<String> songs = FileLoader.loadSongsFromFolder(newDirectory);
             mainController.setSongs(songs);
+            System.out.println("Song added successfully!");
         } else {
             System.out.println("Invalid index. Please try again.");
         }
     }
+
+
 
     private void handleRemoveSong() throws IOException {
         List<Path> currentPlaylistSongs = Files.list(Paths.get(newDirectory))
@@ -155,11 +156,32 @@ public class CommandHandler {
                 }
             } else {
                 System.out.println("Playlist '" + newPlaylist + "' does not exist.");
+                newDirectory = null;
             }
         } else {
             System.out.println("Invalid switch command. Use 'switch [playlist name]'.");
         }
     }
+
+    private void handleViewPlaylist() {
+        if (newDirectory == null || !Files.exists(Paths.get(newDirectory))) {
+            System.out.println("No playlist selected or playlist directory does not exist. Please create or switch to a playlist first.");
+            return;
+        }
+
+        try {
+            List<Path> currentPlaylistSongs = Files.list(Paths.get(newDirectory))
+                    .collect(Collectors.toList());
+
+            System.out.println("Current songs in the playlist:");
+            for (int i = 0; i < currentPlaylistSongs.size(); i++) {
+                System.out.println((i + 1) + ": " + currentPlaylistSongs.get(i).getFileName());
+            }
+        } catch (IOException e) {
+            System.err.println("Error viewing playlist: " + e.getMessage());
+        }
+    }
+
 
     public String getNewDirectory() {
         return newDirectory;
