@@ -1,3 +1,4 @@
+
 package com.odyssey.components;
 
 import javazoom.jl.decoder.JavaLayerException;
@@ -12,8 +13,27 @@ public class AudioPlayer {
     private String currentSongPath;
     private long pausePosition = 0;
     private boolean isPaused = false;
-
+    private float playbackSpeed = 1.0f;
     private OnSongEndListener onSongEndListener;
+    private long elapsedTime = 0; // Elapsed time in milliseconds
+    private boolean isPlaying = false; // To track if the song is currently playing
+
+    private String formatTime(long milliseconds) {
+        long seconds = (milliseconds / 1000) % 60;
+        long minutes = (milliseconds / 1000) / 60;
+        return String.format("%02d:%02d", minutes, seconds);
+    }
+
+    public void setPlaybackSpeed(float speed) {
+        if (speed >= 0.5f && speed <= 2.0f) { // Limit speed between 0.5x and 2.0x
+            playbackSpeed = speed;
+            System.out.println("Playback speed set to " + playbackSpeed + "x");
+        } else {
+            System.out.println("Invalid speed. Please use a value between 0.5x and 2.0x.");
+        }
+    }
+
+
 
     public void setOnSongEndListener(OnSongEndListener listener) {
         this.onSongEndListener = listener;
@@ -27,31 +47,73 @@ public class AudioPlayer {
             fileInputStream = new FileInputStream(currentSongPath);
             player = new Player(fileInputStream);
 
+
+            elapsedTime = 0;
+            isPlaying = true;
+
+
             if (isPaused) {
                 isPaused = false;
             }
 
             new Thread(() -> {
                 try {
-                    player.play();
-                    if (player != null && player.isComplete() && onSongEndListener != null) {
-                        onSongEndListener.onSongEnd();
+                    // Timer thread for updating elapsed time
+                    new Thread(() -> {
+                        while (isPlaying) {
+                            try {
+                                Thread.sleep(1000); // Update every second
+                                elapsedTime += 1000;
+                                System.out.print("\rElapsed Time: " + formatTime(elapsedTime)); // Display timer
+                            } catch (InterruptedException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    }).start();
+
+                    // Playback thread with speed control
+                    while (!player.isComplete()) {
+                        if (player == null) {
+                            System.err.println("Error: Player is null. Stopping playback.");
+                            isPlaying = false;
+                            break;
+                        }
+
+                        if (playbackSpeed != 1.0f) {
+                            Thread.sleep((long) (100 / playbackSpeed)); // Adjust playback speed
+                            player.play(1); // Play one frame
+                        } else {
+                            player.play(1); // Normal playback
+                        }
                     }
-                } catch (JavaLayerException e) {
-                    e.printStackTrace();
+
+                    // If playback completes, reset state
+                    if (player.isComplete()) {
+                        isPlaying = false;
+                        elapsedTime = 0;
+                        System.out.println("\nPlayback finished!");
+                        if (onSongEndListener != null) {
+                            onSongEndListener.onSongEnd();
+                        }
+                    }
+                } catch (JavaLayerException | InterruptedException e) {
+                    System.err.println("Playback error: " + e.getMessage());
                 }
             }).start();
+
         } catch (JavaLayerException | IOException e) {
-            e.printStackTrace();
+            System.err.println("Error initializing playback: " + e.getMessage());
         }
     }
+
 
     public void pause() throws IOException {
         if (player != null) {
             pausePosition = fileInputStream.available();
             player.close();
             player = null;
-            isPaused = true;
+            isPlaying = false;
+            System.out.println("\nPlayback paused at: " + formatTime(elapsedTime));
         }
     }
 
@@ -60,6 +122,8 @@ public class AudioPlayer {
             try {
                 fileInputStream = new FileInputStream(currentSongPath);
                 play(currentSongPath);
+                isPlaying = true;
+                System.out.println("Resuming playback...");
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -72,6 +136,8 @@ public class AudioPlayer {
             player = null;
             isPaused = false;
             pausePosition = 0;
+            elapsedTime = 0;
+            System.out.println("\nPlayback stopped.");
         }
     }
 
