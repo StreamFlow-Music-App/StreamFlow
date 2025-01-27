@@ -1,30 +1,25 @@
 package com.odyssey.controllers;
 
-import com.odyssey.services.SearchService;
 import com.odyssey.services.ShuffleService;
-import com.odyssey.services.SortService;
-
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.Scanner;
 
 public class MainController {
     private final PlayerController playerController;
-    private final SearchService searchService;
     private final ShuffleService shuffleService;
-    private final SortService sortService;
     private List<String> songs;
     private int currentIndex;
     private boolean hasSongs;
+    private boolean isShuffleEnabled;
 
     public MainController(List<String> songs) {
-
         this.songs = songs;
         this.currentIndex = 0;
         this.hasSongs = !songs.isEmpty();
-        this.searchService = new SearchService();
         this.shuffleService = new ShuffleService();
-        this.sortService = new SortService();
+        this.isShuffleEnabled = false;
         this.playerController = new PlayerController(() -> {
             try {
                 playNextSong();
@@ -33,8 +28,6 @@ public class MainController {
             }
         });
     }
-
-
 
     public void setSongs(List<String> newSongs) {
         this.songs = newSongs;
@@ -47,6 +40,16 @@ public class MainController {
             System.out.println("No songs available in the current playlist.");
         } else {
             playCurrentSong();
+        }
+    }
+
+    public void toggleShuffle() {
+        isShuffleEnabled = !isShuffleEnabled;
+        if (isShuffleEnabled) {
+            shuffleService.initializeShuffle(songs.size());
+            System.out.println("Shuffle mode is ON.");
+        } else {
+            System.out.println("Shuffle mode is OFF.");
         }
     }
 
@@ -71,6 +74,11 @@ public class MainController {
             case "b":
                 playPreviousSong();
                 break;
+            case "speed":
+                System.out.print("Enter speed (0.5x - 2.0x): ");
+                float speed = new Scanner(System.in).nextFloat();
+                playerController.setPlaybackSpeed(speed);
+                break;
             case "stop":
                 playerController.stop();
                 System.out.println("Song stopped.");
@@ -84,11 +92,9 @@ public class MainController {
         String songPath = songs.get(currentIndex);
         String[] songParts = songPath.split("/");
 
-        // Extract the song name from the last part of the path and remove any prefixes like "11086_"
         String rawSongName = songParts[songParts.length - 1];
         String songName = rawSongName.contains("_") ? rawSongName.substring(rawSongName.indexOf("_") + 1) : rawSongName;
 
-        // Use album name if available in the path; otherwise, set it to "Unknown Album"
         String albumName = (songParts.length > 3) ? songParts[3] : "Unknown Album";
 
         System.out.println();
@@ -102,21 +108,26 @@ public class MainController {
     }
 
     private void playNextSong() throws IOException {
-        if (currentIndex < songs.size() - 1) {
-            currentIndex++;
-            playCurrentSong();
+        if (isShuffleEnabled) {
+            currentIndex = shuffleService.getNextShuffledIndex();
         } else {
-            System.out.println("You are at the last song. No next song available.");
+            if (currentIndex < songs.size() - 1) {
+                currentIndex++;
+            } else {
+                System.out.println("You are at the last song. No next song available.");
+                return;
+            }
         }
+        playCurrentSong();
     }
 
     private void playPreviousSong() throws IOException {
-        if (currentIndex > 0) {
+        if (isShuffleEnabled && currentIndex > 0) {
             currentIndex--;
-            playCurrentSong();
         } else {
             System.out.println("You are at the first song. No previous song available.");
         }
+        playCurrentSong();
     }
 
     public void stopCurrentSong() {
@@ -129,32 +140,20 @@ public class MainController {
     }
 
     public boolean searchAndPlaySong(String songName) {
-        List<Integer> matchingSongs = searchService.searchSongsByName(songs, songName);
+        for (int i = 0; i < songs.size(); i++) {
+            String path = songs.get(i);
+            String fileName = Paths.get(path).getFileName().toString();
 
-        if (!matchingSongs.isEmpty()) {
-            String songPath = String.valueOf(matchingSongs.get(0)); // Play the first match
-            currentIndex = songs.indexOf(songPath);
-            try {
-                playCurrentSong();
-            } catch (IOException e) {
-                System.err.println("Error playing the song: " + e.getMessage());
+            if (fileName.equalsIgnoreCase(songName + ".mp3")) {
+                currentIndex = i;
+                try {
+                    playCurrentSong();
+                } catch (IOException e) {
+                    System.err.println("Error playing the song: " + e.getMessage());
+                }
+                return true;
             }
-            return true;
-        } else {
-            return false;
         }
+        return false;
     }
-
-    public void shufflePlaylist() {
-        shuffleService.shuffleSongs(songs);
-        currentIndex = 0;  // Reset to the beginning after shuffling
-        System.out.println("Playlist shuffled.");
-    }
-    public void sortPlaylist() {
-        sortService.sortSongsByName(songs);
-        currentIndex = 0;  // Reset to the beginning after sorting
-        System.out.println("Playlist sorted alphabetically by song name.");
-    }
-
-
 }
