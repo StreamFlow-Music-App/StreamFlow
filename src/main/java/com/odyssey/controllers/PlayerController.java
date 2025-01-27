@@ -35,6 +35,10 @@ public class PlayerController {
         audioPlayer.stop();
     }
 
+    public void setPlaybackSpeed(float speed) {
+        audioPlayer.setPlaybackSpeed(speed); // Pass the speed to AudioPlayer
+    }
+
     public interface OnSongEndCallback{
         void onSongEnd();
     }
