@@ -14,6 +14,7 @@ import java.util.stream.Collectors;
 public class CommandHandler {
     private final MainController mainController;
     private final PlaylistService playlistService;
+    private final FavouriteManager favouriteManager;
     private final String baseDirectory;
     private String newDirectory;
 
@@ -21,8 +22,8 @@ public class CommandHandler {
         this.baseDirectory = baseDirectory;
         this.mainController = mainController;
         this.playlistService = playlistService;
+        this.favouriteManager = new FavouriteManager(baseDirectory);
     }
-
 
     public void handleCommand(String input, PlaylistManager playlistManager, String currentDirectory) {
         try {
@@ -40,8 +41,12 @@ public class CommandHandler {
                 handleRemoveSong();
             } else if (input.equals("s")) {
                 handleSearchCommand();
-            } else if (input.equalsIgnoreCase("c")) {  
+            } else if (input.equalsIgnoreCase("c")) {
                 mainController.toggleShuffle();
+            } else if (input.equalsIgnoreCase("f")) {
+                handleFavouriteCommand();
+            } else if (input.equalsIgnoreCase("l")) {
+                handleListFavouritesCommand();
             } else {
                 mainController.handleInput(input);
             }
@@ -50,6 +55,27 @@ public class CommandHandler {
         }
     }
 
+    private void handleFavouriteCommand() throws IOException {
+        String currentSongPath = mainController.getCurrentSongPath();
+        if (currentSongPath != null) {
+            favouriteManager.addSongToFavourites(currentSongPath);
+            System.out.println("Song added to favourites.");
+        } else {
+            System.out.println("No song is currently playing.");
+        }
+    }
+
+    private void handleListFavouritesCommand() throws IOException {
+        List<String> favouriteSongs = favouriteManager.getFavouriteSongs();
+        if (favouriteSongs.isEmpty()) {
+            System.out.println("No songs in favourites.");
+        } else {
+            System.out.println("Favourite songs:");
+            for (String song : favouriteSongs) {
+                System.out.println(song);
+            }
+        }
+    }
 
     private void handleSearchCommand() {
         System.out.print("Enter song name to search [Song name - Artist name] : ");

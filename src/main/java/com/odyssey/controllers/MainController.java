@@ -150,4 +150,11 @@ public class MainController {
         }
         return false;
     }
+
+    public String getCurrentSongPath() {
+        if (hasSongs && currentIndex >= 0 && currentIndex < songs.size()) {
+            return songs.get(currentIndex);
+        }
+        return null;
+    }
 }

@@ -58,6 +58,8 @@ public class Main {
         System.out.println("Resume -> 'r'");
         System.out.println("Search song -> 's'");
         System.out.println("Shuffle Play -> 'c'");
+        System.out.println("Add to Favourites -> 'f'");
+        System.out.println("List Favourites -> 'l'");
 
         if (!Objects.equals(directory, null) && !Objects.equals(directory, "src/resources/playlists/songs")) {
             System.out.println("Add song -> 'add song'");
@@ -95,5 +97,4 @@ public class Main {
         }
         return false;
     }
-
 }
