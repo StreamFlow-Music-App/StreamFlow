@@ -60,6 +60,8 @@ public class Main {
         System.out.println("Shuffle Play -> 'c'");
         System.out.println("Add to Favourites -> 'f'");
         System.out.println("List Favourites -> 'l'");
+        System.out.println("Show Playback Time -> 't'");
+        System.out.println("Set Playback Speed -> 'speed'");
 
         if (!Objects.equals(directory, null) && !Objects.equals(directory, "src/resources/playlists/songs")) {
             System.out.println("Add song -> 'add song'");
@@ -71,7 +73,6 @@ public class Main {
         System.out.println("Switch Playlist -> 'switch [playlist name]'");
         System.out.println("Stop -> Press Enter");
     }
-
     private static boolean authenticateUser() {
         Scanner scanner = new Scanner(System.in);
         System.out.print("Enter username: ");

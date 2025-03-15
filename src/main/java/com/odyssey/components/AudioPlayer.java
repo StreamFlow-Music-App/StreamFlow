@@ -1,17 +1,21 @@
 package com.odyssey.components;
 
 import javazoom.jl.decoder.JavaLayerException;
-import javazoom.jl.player.Player;
+import javazoom.jl.player.advanced.PlaybackEvent;
+import javazoom.jl.player.advanced.PlaybackListener;
 
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 
 public class AudioPlayer {
-    private Player player;
+    private SpeedControlledPlayer player;
     private FileInputStream fileInputStream;
     private String currentSongPath;
     private long pausePosition = 0;
     private boolean isPaused = false;
+    private long startTime = 0; // Track start time for playback time calculation
+    private float playbackSpeed = 1.0f; // Default playback speed
 
     private OnSongEndListener onSongEndListener;
 
@@ -21,22 +25,29 @@ public class AudioPlayer {
 
     public void play(String songPath) {
         try {
-            stop();
+            stop(); // Ensure no previous instance is running
 
             currentSongPath = songPath;
             fileInputStream = new FileInputStream(currentSongPath);
-            player = new Player(fileInputStream);
+            player = new SpeedControlledPlayer(fileInputStream);
+            player.setPlaybackSpeed(playbackSpeed); // Set playback speed before playing
 
             if (isPaused) {
                 isPaused = false;
             }
 
+            startTime = System.currentTimeMillis() - pausePosition; // Adjust start time for resume
             new Thread(() -> {
                 try {
-                    player.play();
-                    if (player != null && player.isComplete() && onSongEndListener != null) {
-                        onSongEndListener.onSongEnd();
-                    }
+                    player.setPlayBackListener(new PlaybackListener() {
+                        @Override
+                        public void playbackFinished(PlaybackEvent evt) {
+                            if (onSongEndListener != null) {
+                                onSongEndListener.onSongEnd();
+                            }
+                        }
+                    });
+                    player.play(); // Start playback
                 } catch (JavaLayerException e) {
                     e.printStackTrace();
                 }
@@ -48,7 +59,7 @@ public class AudioPlayer {
 
     public void pause() throws IOException {
         if (player != null) {
-            pausePosition = fileInputStream.available();
+            pausePosition = getCurrentPlaybackTime();
             player.close();
             player = null;
             isPaused = true;
@@ -59,8 +70,10 @@ public class AudioPlayer {
         if (isPaused) {
             try {
                 fileInputStream = new FileInputStream(currentSongPath);
+                player = new SpeedControlledPlayer(fileInputStream);
+                player.setPlaybackSpeed(playbackSpeed); // Restore playback speed
                 play(currentSongPath);
-            } catch (IOException e) {
+            } catch (IOException | JavaLayerException e) {
                 e.printStackTrace();
             }
         }
@@ -72,6 +85,27 @@ public class AudioPlayer {
             player = null;
             isPaused = false;
             pausePosition = 0;
+            startTime = 0;
+        }
+    }
+
+    public long getCurrentPlaybackTime() {
+        if (player != null && startTime > 0) {
+            return (System.currentTimeMillis() - startTime) / 1000; // Return time in seconds
+        }
+        return pausePosition / 1000; // Return paused time in seconds
+    }
+
+    public void setPlaybackSpeed(float speed) {
+        if (speed > 0) {
+            this.playbackSpeed = speed;
+            if (player != null) {
+                stop();  // Stop current playback
+                play(currentSongPath);  // Restart with new speed
+            }
+            System.out.println("Playback speed set to: " + speed + "x");
+        } else {
+            System.out.println("Invalid playback speed. Speed must be greater than 0.");
         }
     }
 

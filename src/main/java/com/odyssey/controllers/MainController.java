@@ -1,9 +1,11 @@
 package com.odyssey.controllers;
 
 import com.odyssey.services.ShuffleService;
+
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.Scanner;
 
 public class MainController {
     private final PlayerController playerController;
@@ -19,13 +21,7 @@ public class MainController {
         this.hasSongs = !songs.isEmpty();
         this.shuffleService = new ShuffleService();
         this.isShuffleEnabled = false;
-        this.playerController = new PlayerController(() -> {
-            try {
-                playNextSong();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        });
+        this.playerController = new PlayerController(this::playNextSong); // Use method reference
     }
 
     public void setSongs(List<String> newSongs) {
@@ -76,6 +72,12 @@ public class MainController {
             case "stop":
                 playerController.stop();
                 System.out.println("Song stopped.");
+                break;
+            case "t":
+                displayPlaybackTime();
+                break;
+            case "speed":
+                setPlaybackSpeed();
                 break;
             default:
                 System.out.println("Invalid command.");
@@ -157,4 +159,17 @@ public class MainController {
         }
         return null;
     }
+
+    private void displayPlaybackTime() {
+        long currentTime = playerController.getCurrentPlaybackTime();
+        System.out.println("Current playback time: " + currentTime + " seconds");
+    }
+
+    private void setPlaybackSpeed() {
+        System.out.print("Enter playback speed (e.g., 1.0 for normal, 1.5 for 1.5x): ");
+        Scanner scanner = new Scanner(System.in);
+        float speed = scanner.nextFloat();
+        playerController.setPlaybackSpeed(speed);
+    }
+
 }
