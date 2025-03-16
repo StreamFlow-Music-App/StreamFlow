@@ -31,7 +31,8 @@ public class CommandHandler {
                 mainController.handleInput("stop");
             } else if (input.startsWith("create ")) {
                 handleCreateCommand(input, playlistManager);
-
+            }else if (input.equalsIgnoreCase("h")) {
+                mainController.showHistory();
             } else if (input.startsWith("delete ")) {
                 handleDeleteCommand(input, playlistManager);
             } else if (input.startsWith("switch ")) {

@@ -2,27 +2,32 @@ package com.odyssey.controllers;
 
 import com.odyssey.components.Song;
 import com.odyssey.services.ShuffleService;
+import com.odyssey.components.SongFilter;
+import com.odyssey.services.HistoryService;
 
 import java.io.IOException;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
 public class MainController {
     private final PlayerController playerController;
     private final ShuffleService shuffleService;
+    private final HistoryService historyService;
     private List<String> songs;
     private int currentIndex;
     private boolean hasSongs;
     private boolean isShuffleEnabled;
 
-    public MainController(List<String> songs) {
+    public MainController(List<String> songs, HistoryService historyService) {
         this.songs = songs;
         this.currentIndex = 0;
         this.hasSongs = !songs.isEmpty();
         this.shuffleService = new ShuffleService();
         this.isShuffleEnabled = false;
         this.playerController = new PlayerController(this::playNextSong); // Use method reference
+        this.historyService = historyService;
     }
 
     public void setSongs(List<String> newSongs) {
@@ -87,6 +92,9 @@ public class MainController {
 
     private void playCurrentSong() throws IOException {
         String songPath = songs.get(currentIndex);
+        historyService.addToHistory(songPath); // Add the current song to history
+
+
         String[] songParts = songPath.split("/");
 
         String rawSongName = songParts[songParts.length - 1];
@@ -171,6 +179,18 @@ public class MainController {
         Scanner scanner = new Scanner(System.in);
         float speed = scanner.nextFloat();
         playerController.setPlaybackSpeed(speed);
+    }
+
+    public void showHistory() {
+        ArrayList<String> history = historyService.getHistory();
+        if (history.isEmpty()) {
+            System.out.println("No songs have been played yet.");
+        } else {
+            System.out.println("Playback History:");
+            for (int i = 0; i < history.size(); i++) {
+                System.out.println((i + 1) + ": " + history.get(i));
+            }
+        }
     }
 
 

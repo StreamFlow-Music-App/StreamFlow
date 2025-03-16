@@ -4,6 +4,7 @@ import com.odyssey.components.CommandHandler;
 import com.odyssey.components.PlaylistManager;
 import com.odyssey.components.utils.FileLoader;
 import com.odyssey.controllers.MainController;
+import com.odyssey.services.HistoryService;
 import com.odyssey.services.PlaylistService;
 
 import java.io.BufferedReader;
@@ -28,7 +29,8 @@ public class Main {
             String currentDirectory = baseDirectory + "/" + initialPlaylist;
 
             List<String> songs = FileLoader.loadSongsFromFolder(currentDirectory);
-            MainController mainController = new MainController(songs);
+            HistoryService historyService = new HistoryService();
+            MainController mainController = new MainController(songs,historyService);
             PlaylistService playlistService = new PlaylistService();
             mainController.start();
 
@@ -62,6 +64,7 @@ public class Main {
         System.out.println("List Favourites -> 'l'");
         System.out.println("Show Playback Time -> 't'");
         System.out.println("Set Playback Speed -> 'speed'");
+        System.out.println("Show History -> 'h'");
 
         if (!Objects.equals(directory, null) && !Objects.equals(directory, "src/resources/playlists/songs")) {
             System.out.println("Add song -> 'add song'");
