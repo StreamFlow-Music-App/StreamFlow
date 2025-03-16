@@ -24,4 +24,6 @@ public class ShuffleService {
         currentShuffleIndex = (currentShuffleIndex + 1) % shuffledIndices.size();
         return index;
     }
+
+
 }

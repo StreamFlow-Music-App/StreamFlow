@@ -2,7 +2,8 @@ package com.odyssey.components;
 
 import javazoom.jl.decoder.JavaLayerException;
 import javazoom.jl.player.advanced.AdvancedPlayer;
-
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 
 public class SpeedControlledPlayer extends AdvancedPlayer {
@@ -20,29 +21,40 @@ public class SpeedControlledPlayer extends AdvancedPlayer {
 
     @Override
     protected boolean decodeFrame() throws JavaLayerException {
-        boolean result = super.decodeFrame();
-        if (!result) {
-            return false; // End of stream
-        }
-
-        if (playbackSpeed > 1.0f) {
-            // Skip extra frames for fast playback
+        if (playbackSpeed == 1.0f) {
+            // Normal playback speed
+            return super.decodeFrame();
+        } else if (playbackSpeed > 1.0f) {
+            // Speed up playback by skipping frames
             int framesToSkip = (int) (playbackSpeed - 1.0f);
             for (int i = 0; i < framesToSkip; i++) {
                 if (!super.decodeFrame()) {
                     return false; // End of stream
                 }
             }
-        } else if (playbackSpeed < 1.0f) {
-            // Repeat frames for slow playback
-            int repeatCount = (int) (1.0f / playbackSpeed);
-            for (int i = 1; i < repeatCount; i++) {
-                if (!super.decodeFrame()) {
-                    return false; // End of stream
+            return super.decodeFrame();
+        } else {
+
+            boolean result = super.decodeFrame();
+            if (result) {
+                try {
+
+                    long sleepTime = (long) (1000 / (getFrameRate() * playbackSpeed));
+                    Thread.sleep(sleepTime);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    return false;
                 }
             }
+            return result;
         }
 
-        return true;
+
+
+    }
+
+    private float getFrameRate() {
+
+        return 24.0f;
     }
 }

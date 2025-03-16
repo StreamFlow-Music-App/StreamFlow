@@ -1,5 +1,6 @@
 package com.odyssey.controllers;
 
+import com.odyssey.components.Song;
 import com.odyssey.services.ShuffleService;
 
 import java.io.IOException;
@@ -172,4 +173,9 @@ public class MainController {
         playerController.setPlaybackSpeed(speed);
     }
 
-}
+
+
+    }
+
+
+
