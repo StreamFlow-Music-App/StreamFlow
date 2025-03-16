@@ -68,7 +68,7 @@ public class Main {
 
         if (!Objects.equals(directory, null) && !Objects.equals(directory, "src/resources/playlists/songs")) {
             System.out.println("Add song -> 'add song'");
-            System.out.println("Remove song -> 'remove song'");
+            System.out.println("Remove song -> 'remove song' ");
         }
 
         System.out.println("Create a new Playlist -> 'create [playlist name]'");
