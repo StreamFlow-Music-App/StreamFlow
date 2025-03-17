@@ -129,10 +129,13 @@ public class MainController {
     private void playPreviousSong() throws IOException {
         if (isShuffleEnabled && currentIndex > 0) {
             currentIndex--;
-        } else {
+            playCurrentSong();
+        } else if(!isShuffleEnabled && currentIndex > 0){
+            currentIndex --;
+            playCurrentSong();
+        }else{
             System.out.println("You are at the first song. No previous song available.");
         }
-        playCurrentSong();
     }
 
     public void stopCurrentSong() {

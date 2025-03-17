@@ -12,7 +12,7 @@
   </component>
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
-      <module name="StreamFlow" options="--add-exports java.base/sun.net.www.protocol.http=ALL-UNNAMED" />
+      <module name="StreamFlow" options="" />
     </option>
   </component>
 </project>
