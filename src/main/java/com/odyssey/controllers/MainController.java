@@ -1,5 +1,6 @@
 package com.odyssey.controllers;
 
+import com.odyssey.components.StateManager;
 import com.odyssey.services.ShuffleService;
 import com.odyssey.components.SongFilter;
 import com.odyssey.services.HistoryService;
@@ -8,6 +9,7 @@ import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Properties;
 import java.util.Scanner;
 
 public class MainController {
@@ -19,6 +21,9 @@ public class MainController {
     private int currentIndex;
     private boolean hasSongs;
     private boolean isShuffleEnabled;
+    private final StateManager stateManager;
+    private String currentSongPath;
+    private long playbackPosition;
 
     public MainController(List<String> songs, HistoryService historyService) {
         this.songs = songs;
@@ -29,6 +34,41 @@ public class MainController {
         this.isShuffleEnabled = false;
         this.playerController = new PlayerController(this::playNextSong); // Use method reference
         this.historyService = historyService;
+        this.stateManager = new StateManager();
+        this.currentSongPath = null; // Initialize to null
+        this.playbackPosition = 0;
+        loadState();
+    }
+
+    private void loadState() {
+        var state = stateManager.loadState();
+        if (state != null && !state.isEmpty()) {
+            currentSongPath = state.getProperty("currentSongPath");
+            playbackPosition = Long.parseLong(state.getProperty("playbackPosition", "0"));
+            System.out.println("Loaded state: Song = " + currentSongPath + ", Position = " + playbackPosition + "s");
+
+            // Find the index of the saved song in the playlist
+            if (currentSongPath != null) {
+                currentIndex = songs.indexOf(currentSongPath);
+                if (currentIndex == -1) {
+                    System.out.println("Saved song not found in the current playlist. Starting fresh.");
+                    currentSongPath = null;
+                    playbackPosition = 0;
+                }
+            }
+        } else {
+            System.out.println("No saved state found. Starting fresh.");
+        }
+    }
+
+    // Save the current state
+    public void saveState() {
+        if (currentSongPath != null) {
+            long currentPlaybackTime = playerController.getCurrentPlaybackTime();
+            stateManager.saveState(currentSongPath, currentPlaybackTime);
+        } else {
+            System.out.println("No song is currently playing. State not saved.");
+        }
     }
 
     public void setSongs(List<String> newSongs) {
@@ -86,21 +126,23 @@ public class MainController {
             case "speed":
                 setPlaybackSpeed();
                 break;
+            case "reset": // Handle the reset command
+                resetState();
+                playCurrentSong();
             default:
                 System.out.println("Invalid command.");
         }
     }
 
-    private void playCurrentSong() throws IOException {
-        String songPath = songs.get(currentIndex);
-        historyService.addToHistory(songPath); // Add the current song to history
+    public void playCurrentSong() throws IOException {
+        currentSongPath = songs.get(currentIndex); // Update currentSongPath
+        System.out.println("Now playing: " + currentSongPath); // Debug log
+        historyService.addToHistory(currentSongPath);
 
-
-        String[] songParts = songPath.split("/");
-
+        // Extract song name for display
+        String[] songParts = currentSongPath.split("/");
         String rawSongName = songParts[songParts.length - 1];
         String songName = rawSongName.contains("_") ? rawSongName.substring(rawSongName.indexOf("_") + 1) : rawSongName;
-
         String albumName = (songParts.length > 3) ? songParts[3] : "Unknown Album";
 
         System.out.println();
@@ -110,7 +152,7 @@ public class MainController {
         System.out.println("Playing song: " + songName);
         System.out.println("---------------------------------------------------------------");
 
-        playerController.play(songPath);
+        playerController.play(currentSongPath);
     }
 
     private void playNextSong() throws IOException {
@@ -229,7 +271,30 @@ public class MainController {
 
 
 
+
+    // Reset the state
+    public void resetState() throws IOException {
+        System.out.println("Resetting state...");
+        stopCurrentSong();
+        stateManager.resetState();
+        currentSongPath = null;
+        playbackPosition = 0;
+        currentIndex = 0;
+        System.out.println("State reset. Playback will start from the beginning.");
+        if (hasSongs) {
+            playCurrentSong();
+        } else {
+            System.out.println("No songs available in the playlist.");
+        }
     }
+    }
+
+
+
+
+
+
+
 
 
 
