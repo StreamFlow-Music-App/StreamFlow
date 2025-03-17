@@ -50,6 +50,8 @@ public class CommandHandler {
                 mainController.toggleShuffle();
             } else if (input.equalsIgnoreCase("f")) {
                 handleFavouriteCommand();
+            } else if (input.equalsIgnoreCase("reset")) { // Handle the reset command
+                mainController.resetState();
             } else if (input.equalsIgnoreCase("l")) {
                 handleListFavouritesCommand();
             } else {
@@ -265,4 +267,6 @@ public class CommandHandler {
     public String getNewDirectory() {
         return newDirectory;
     }
+
+
 }
