@@ -1,64 +1,75 @@
 package com.odyssey.components;
 
-import java.io.*;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
 public class SongFilter {
-    private List<Song> songs;
-    private List<Song> customPlaylist;
 
-    public SongFilter(String songFilePath) throws IOException {
-        this.songs = loadSongsFromFile(songFilePath);
-        this.customPlaylist = new ArrayList<>();
+    public List<String> filterByArtist(List<String> songPaths, String artist) {
+        return songPaths.stream()
+                .filter(songPath -> {
+                    String extractedArtist = extractArtistFromFileName(songPath);
+                    return extractedArtist.toLowerCase().contains(artist.toLowerCase()); // Partial match
+                })
+                .collect(Collectors.toList());
     }
 
-    private List<Song> loadSongsFromFile(String filePath) throws IOException {
-        List<Song> songs = new ArrayList<>();
-        try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                String[] parts = line.split("-");
-                if (parts.length == 3) {
-                    songs.add(new Song(parts[0], parts[1], parts[2]));
-                }
-            }
+    public List<String> filterByGenre(List<String> songPaths, String genre) {
+        return songPaths.stream()
+                .filter(songPath -> extractGenreFromPath(songPath).equalsIgnoreCase(genre))
+                .collect(Collectors.toList());
+    }
+
+    public List<String> filterByAlbum(List<String> songPaths, String album) {
+        return songPaths.stream()
+                .filter(songPath -> extractAlbumFromPath(songPath).equalsIgnoreCase(album))
+                .collect(Collectors.toList());
+    }
+
+    public List<String> filterBySongName(List<String> songPaths, String songName) {
+        return songPaths.stream()
+                .filter(songPath -> {
+                    String extractedSongName = extractSongNameFromFileName(songPath);
+                    return extractedSongName.toLowerCase().contains(songName.toLowerCase()); // Partial match
+                })
+                .collect(Collectors.toList());
+    }
+
+    private String extractArtistFromPath(String songPath) {
+        // Example path: "src/resources/songs/ArtistName/AlbumName/SongName.mp3"
+        String[] parts = songPath.split("/");
+        if (parts.length > 3) {
+            return parts[3]; // Artist name is the 4th part of the path
         }
-        return songs;
+        return "Unknown Artist";
     }
 
-    public List<Song> filterByArtist(String artistName) {
-        return songs.stream()
-                .filter(song -> song.getArtist().equalsIgnoreCase(artistName))
-                .collect(Collectors.toList());
+    private String extractGenreFromPath(String songPath) {
+        return "Unknown Genre";
     }
 
-    public List<Song> filterByGenre(String genre) {
-        return songs.stream()
-                .filter(song -> song.getGenre().equalsIgnoreCase(genre))
-                .collect(Collectors.toList());
-    }
-
-    public void addToCustomPlaylist(String keyword) {
-        List<Song> matchingSongs = songs.stream()
-                .filter(song -> song.getTitle().toLowerCase().contains(keyword.toLowerCase()))
-                .collect(Collectors.toList());
-
-        customPlaylist.addAll(matchingSongs);
-        System.out.println(matchingSongs.size() + " songs added to the custom playlist using keyword: " + keyword);
-    }
-
-    public void saveCustomPlaylist(String filePath) throws IOException {
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePath))) {
-            for (Song song : customPlaylist) {
-                writer.write(song.getTitle() + "-" + song.getArtist() + "-" + song.getGenre());
-                writer.newLine();
-            }
+    private String extractArtistFromFileName(String songPath) {
+        String fileName = songPath.substring(songPath.lastIndexOf("/") + 1); // Get the file name
+        if (fileName.contains(" - ")) {
+            return fileName.split(" - ")[1].replace(".mp3", ""); // Extract artist name
         }
-        System.out.println("Custom playlist saved to " + filePath);
+        return "Unknown Artist";
+    }
+
+    private String extractAlbumFromPath(String songPath) {
+        // Example path: "src/resources/songs/ArtistName/AlbumName/SongName.mp3"
+        String[] parts = songPath.split("/");
+        if (parts.length > 4) {
+            return parts[4]; // Album name is the 5th part of the path
+        }
+        return "Unknown Album";
+    }
+
+    private String extractSongNameFromFileName(String songPath) {
+        String fileName = songPath.substring(songPath.lastIndexOf("/") + 1); // Get the file name
+        if (fileName.contains(" - ")) {
+            return fileName.split(" - ")[0]; // Extract song name
+        }
+        return fileName.replace(".mp3", ""); // Fallback to file name without extension
     }
 }
-
-
-
