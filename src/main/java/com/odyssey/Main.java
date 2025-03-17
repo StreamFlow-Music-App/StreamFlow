@@ -54,6 +54,9 @@ public class Main {
     }
 
     private static void displayCommands(String directory) {
+        System.out.println("\n-----------------------------");
+        System.out.println("Available Commands:");
+        System.out.println("-----------------------------");
         System.out.println("Next Song -> 'n'");
         System.out.println("Previous Song -> 'b'");
         System.out.println("Pause -> 'p'");
@@ -62,10 +65,13 @@ public class Main {
         System.out.println("Shuffle Play -> 'c'");
         System.out.println("Add to Favourites -> 'f'");
         System.out.println("List Favourites -> 'l'");
-        System.out.println("Filter Song -> 'filter [artist/song] [value]'");
         System.out.println("Show Playback Time -> 't'");
         System.out.println("Set Playback Speed -> 'speed'");
         System.out.println("Show History -> 'h'");
+        System.out.println("Filter Songs -> 'filter [artist/song] [value]'");
+        System.out.println("Sort Songs -> 'sort [title/artist/album]'");
+        System.out.println("Add song to playlist -> 'add song'");
+        System.out.println("Remove song from playlist -> 'remove song'");
 
         if (!Objects.equals(directory, null) && !Objects.equals(directory, "src/resources/playlists/songs")) {
             System.out.println("Add song -> 'add song'");
@@ -76,6 +82,8 @@ public class Main {
         System.out.println("Delete a Playlist -> 'delete [playlist name]'");
         System.out.println("Switch Playlist -> 'switch [playlist name]'");
         System.out.println("Stop -> Press Enter");
+        System.out.println("-----------------------------\n");
+
     }
     private static boolean authenticateUser() {
         Scanner scanner = new Scanner(System.in);
