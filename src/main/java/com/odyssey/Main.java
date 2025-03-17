@@ -1,10 +1,10 @@
-
 package com.odyssey;
 
 import com.odyssey.components.CommandHandler;
 import com.odyssey.components.PlaylistManager;
 import com.odyssey.components.utils.FileLoader;
 import com.odyssey.controllers.MainController;
+import com.odyssey.services.HistoryService;
 import com.odyssey.services.PlaylistService;
 
 import java.io.BufferedReader;
@@ -29,7 +29,8 @@ public class Main {
             String currentDirectory = baseDirectory + "/" + initialPlaylist;
 
             List<String> songs = FileLoader.loadSongsFromFolder(currentDirectory);
-            MainController mainController = new MainController(songs);
+            HistoryService historyService = new HistoryService();
+            MainController mainController = new MainController(songs,historyService);
             PlaylistService playlistService = new PlaylistService();
             mainController.start();
 
@@ -59,7 +60,12 @@ public class Main {
         System.out.println("Resume -> 'r'");
         System.out.println("Search song -> 's'");
         System.out.println("Shuffle Play -> 'c'");
-        System.out.println("Change Speed -> 'speed'");
+        System.out.println("Add to Favourites -> 'f'");
+        System.out.println("List Favourites -> 'l'");
+        System.out.println("Filter Song -> 'filter [artist/song] [value]'");
+        System.out.println("Show Playback Time -> 't'");
+        System.out.println("Set Playback Speed -> 'speed'");
+        System.out.println("Show History -> 'h'");
 
         if (!Objects.equals(directory, null) && !Objects.equals(directory, "src/resources/playlists/songs")) {
             System.out.println("Add song -> 'add song'");
@@ -71,7 +77,6 @@ public class Main {
         System.out.println("Switch Playlist -> 'switch [playlist name]'");
         System.out.println("Stop -> Press Enter");
     }
-
     private static boolean authenticateUser() {
         Scanner scanner = new Scanner(System.in);
         System.out.print("Enter username: ");
@@ -97,5 +102,4 @@ public class Main {
         }
         return false;
     }
-
 }
