@@ -202,9 +202,3 @@ public class CommandHandler {
         return newDirectory;
     }
 }
-
-
-    public String getNewDirectory() {
-        return newDirectory;
-    }
-}
