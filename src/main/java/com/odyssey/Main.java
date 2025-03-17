@@ -4,10 +4,11 @@ import com.odyssey.components.CommandHandler;
 import com.odyssey.components.PlaylistManager;
 import com.odyssey.components.utils.FileLoader;
 import com.odyssey.controllers.MainController;
+import com.odyssey.services.AuthService;
 import com.odyssey.services.HistoryService;
 import com.odyssey.services.PlaylistService;
 
-import java.io.*;
+import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
 import java.util.Scanner;
@@ -17,6 +18,7 @@ public class Main {
     public static void main(String[] args) {
 
         Scanner sc = new Scanner(System.in);
+        AuthService authService = new AuthService();
 
         System.out.println("Welcome! Choose an option:");
         System.out.println("1. Login");
@@ -27,15 +29,14 @@ public class Main {
         boolean authenticated = false;
 
         if (choice.equals("1")) {
-            authenticated = authenticateUser();
+            authenticated = authService.authenticateUser();
         } else if (choice.equals("2")) {
-            registerUser();
+            authService.registerUser();
             return;
-        }else{
+        } else {
             System.out.println("Invalid option. Exiting...");
             return;
         }
-
 
         if (!authenticated) {
             System.out.println("Invalid credentials. Exiting application.");
@@ -49,7 +50,7 @@ public class Main {
 
             List<String> songs = FileLoader.loadSongsFromFolder(currentDirectory);
             HistoryService historyService = new HistoryService();
-            MainController mainController = new MainController(songs,historyService);
+            MainController mainController = new MainController(songs, historyService);
             PlaylistService playlistService = new PlaylistService();
             mainController.start();
 
@@ -94,70 +95,5 @@ public class Main {
         System.out.println("Delete a Playlist -> 'delete [playlist name]'");
         System.out.println("Switch Playlist -> 'switch [playlist name]'");
         System.out.println("Stop -> Press Enter");
-    }
-
-    private static boolean authenticateUser() {
-        Scanner scanner = new Scanner(System.in);
-        System.out.print("Enter username: ");
-        String username = scanner.nextLine();
-        System.out.print("Enter password: ");
-        String password = scanner.nextLine();
-
-        return authenticate(username, password);
-    }
-
-    private static boolean authenticate(String username, String password) {
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(
-                Objects.requireNonNull(Main.class.getClassLoader().getResourceAsStream("login.txt"))))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                String[] credentials = line.split(",");
-                if (credentials[0].trim().equals(username) && credentials[1].trim().equals(password)) {
-                    return true;
-                }
-            }
-        } catch (IOException | NullPointerException e) {
-            System.err.println("Error reading login file: " + e.getMessage());
-        }
-        return false;
-    }
-
-
-    private static void registerUser() {
-        Scanner scanner = new Scanner(System.in);
-        System.out.print("Enter a new username: ");
-        String username = scanner.nextLine();
-        System.out.print("Enter a new password: ");
-        String password = scanner.nextLine();
-
-        if (isUserExists(username)) {
-            System.out.println("Username already exists. Try a different one.");
-            return;
-        }
-
-        try (FileWriter writer = new FileWriter("src/main/resources/login.txt", true);
-             BufferedWriter bufferedWriter = new BufferedWriter(writer)) {
-            bufferedWriter.write(username + "," + password + ",false");
-            bufferedWriter.newLine();
-            System.out.println("Registration successful! You can now log in.");
-        } catch (IOException e) {
-            System.err.println("Error writing to login file: " + e.getMessage());
-        }
-    }
-
-    private static boolean isUserExists(String username) {
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(
-                Objects.requireNonNull(Main.class.getClassLoader().getResourceAsStream("login.txt"))))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                String[] credentials = line.split(",");
-                if (credentials[0].trim().equals(username)) {
-                    return true;
-                }
-            }
-        } catch (IOException e) {
-            System.err.println("Error reading login file: " + e.getMessage());
-        }
-        return false;
     }
 }
