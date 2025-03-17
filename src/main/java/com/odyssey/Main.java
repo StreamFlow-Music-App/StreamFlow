@@ -27,6 +27,9 @@ public class Main {
         String choice = sc.nextLine();
 
         boolean authenticated = false;
+        boolean isPremiumed = false;
+        String username = "";
+
 
         if (choice.equals("1")) {
             authenticated = authService.authenticateUser();
@@ -42,6 +45,9 @@ public class Main {
             System.out.println("Invalid credentials. Exiting application.");
             return;
         }
+
+        isPremiumed = authService.getMembership();
+        username = authService.getUsername();
 
         try (Scanner scanner = new Scanner(System.in)) {
             String baseDirectory = "src/resources/playlists";
@@ -59,7 +65,7 @@ public class Main {
 
             while (true) {
                 String directory = commandHandler.getNewDirectory();
-                displayCommands(directory);
+                displayCommands(directory, isPremiumed);
 
                 String input = scanner.nextLine();
                 commandHandler.handleCommand(input, playlistManager, currentDirectory);
@@ -73,7 +79,7 @@ public class Main {
         }
     }
 
-    private static void displayCommands(String directory) {
+    private static void displayCommands(String directory, boolean isPremimumed) {
         System.out.println("Next Song -> 'n'");
         System.out.println("Previous Song -> 'b'");
         System.out.println("Pause -> 'p'");
@@ -91,9 +97,12 @@ public class Main {
             System.out.println("Remove song -> 'remove song'");
         }
 
-        System.out.println("Create a new Playlist -> 'create [playlist name]'");
-        System.out.println("Delete a Playlist -> 'delete [playlist name]'");
-        System.out.println("Switch Playlist -> 'switch [playlist name]'");
+        if(isPremimumed){
+            System.out.println("Create a new Playlist -> 'create [playlist name]'");
+            System.out.println("Delete a Playlist -> 'delete [playlist name]'");
+            System.out.println("Switch Playlist -> 'switch [playlist name]'");
+        }
+
         System.out.println("Stop -> Press Enter");
     }
 }

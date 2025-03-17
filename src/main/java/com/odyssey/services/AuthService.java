@@ -1,9 +1,12 @@
 package com.odyssey.services;
 
 import java.io.*;
+import java.util.Objects;
 import java.util.Scanner;
 
 public class AuthService {
+    private boolean membership;
+    private String username;
 
     private static final String LOGIN_FILE = "src/main/resources/login.txt";
 
@@ -13,7 +16,19 @@ public class AuthService {
         String username = scanner.nextLine();
         System.out.print("Enter password: ");
         String password = scanner.nextLine();
-        return authenticate(username, password);
+        boolean isAuthenticated = authenticate(username, password);
+        if (isAuthenticated) {
+            System.out.println("Authentication successful!");
+        }
+        return isAuthenticated;
+    }
+
+    public boolean getMembership() {
+        return membership;
+    }
+
+    public String getUsername(){
+        return username;
     }
 
     private boolean authenticate(String username, String password) {
@@ -22,6 +37,8 @@ public class AuthService {
             while ((line = reader.readLine()) != null) {
                 String[] credentials = line.split(",");
                 if (credentials[0].trim().equals(username) && credentials[1].trim().equals(password)) {
+                    this.username = username;
+                    membership = Objects.equals(credentials[2].trim(), "true");
                     return true;
                 }
             }
