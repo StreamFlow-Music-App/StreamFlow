@@ -37,12 +37,24 @@ public class Main {
             CommandHandler commandHandler = new CommandHandler(baseDirectory, mainController, playlistService);
             PlaylistManager playlistManager = new PlaylistManager(baseDirectory);
 
+            Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+                if (mainController.getCurrentSongPath() != null) {
+                    mainController.saveState();
+                    System.out.println("State saved successfully.");
+                } else {
+                    System.out.println("No song is playing. State not saved.");
+                }
+            }));
             while (true) {
                 String directory = commandHandler.getNewDirectory();
                 displayCommands(directory);
 
                 String input = scanner.nextLine();
-                commandHandler.handleCommand(input, playlistManager, currentDirectory);
+                if (input.equalsIgnoreCase("reset")) {
+                    mainController.resetState(); // Reset state if the user enters "reset"
+                } else {
+                    commandHandler.handleCommand(input, playlistManager, currentDirectory);
+                }
 
                 if (input.isEmpty()) {
                     break;
@@ -81,6 +93,7 @@ public class Main {
         System.out.println("Create a new Playlist -> 'create [playlist name]'");
         System.out.println("Delete a Playlist -> 'delete [playlist name]'");
         System.out.println("Switch Playlist -> 'switch [playlist name]'");
+        System.out.println("Reset State -> 'reset'");
         System.out.println("Stop -> Press Enter");
         System.out.println("-----------------------------\n");
 
@@ -110,4 +123,5 @@ public class Main {
         }
         return false;
     }
+
 }
