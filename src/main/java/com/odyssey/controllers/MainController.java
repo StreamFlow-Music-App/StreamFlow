@@ -14,16 +14,16 @@ import java.util.Scanner;
 
 public class MainController {
     private final PlayerController playerController;
-    private final ShuffleService shuffleService;
     private final HistoryService historyService;
     private final SongFilter songFilter;
     private List<String> songs;
     private int currentIndex;
     private boolean hasSongs;
-    private boolean isShuffleEnabled;
     private final StateManager stateManager;
     private String currentSongPath;
     private long playbackPosition;
+    private ShuffleService shuffleService = new ShuffleService(); // Initialize ShuffleService
+    private boolean isShuffleEnabled = false;
 
     public MainController(List<String> songs, HistoryService historyService) {
         this.songs = songs;
