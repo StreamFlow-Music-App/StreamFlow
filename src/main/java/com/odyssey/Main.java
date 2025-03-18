@@ -24,7 +24,7 @@ public class Main {
         String BLUE = "\u001B[34m";
 
         System.out.println(CYAN + "╔════════════════════════════════════════════╗" + RESET);
-        System.out.println(CYAN + "║" + RESET + BOLD + "       Welcome to Odyssey Music Player!     " + RESET + CYAN + "║" + RESET);
+        System.out.println(CYAN + "║" + RESET + BOLD + "       Welcome to StreamFlow Harmony Player!     " + RESET + CYAN + "║" + RESET);
         System.out.println(CYAN + "╠════════════════════════════════════════════╣" + RESET);
         System.out.println(CYAN + "║" + RESET + GREEN + "  1. " + RESET + BOLD + "Login                                 " + RESET + CYAN + " ║" + RESET);
         System.out.println(CYAN + "║" + RESET + YELLOW + "  2. " + RESET + BOLD + "Register                              " + RESET + CYAN + " ║" + RESET);
