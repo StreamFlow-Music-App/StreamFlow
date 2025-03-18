@@ -1,7 +1,5 @@
 package com.odyssey.services;
 
-import com.odyssey.components.Song;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -12,8 +10,12 @@ public class HistoryService {
         this.history = new ArrayList<>();
     }
 
-    public void addToHistory(String songPath) {
-        history.add(songPath.split("/")[4]);
+    public ArrayList<String> addToHistory(String songPath) {
+
+        if (songPath != null) {
+            history.add(songPath); // Add the song path to the history list
+        }
+        return null;
     }
 
     public ArrayList<String> getHistory() {

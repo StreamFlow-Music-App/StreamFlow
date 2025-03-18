@@ -24,7 +24,7 @@ public class Main {
         String BLUE = "\u001B[34m";
 
         System.out.println(CYAN + "╔════════════════════════════════════════════╗" + RESET);
-        System.out.println(CYAN + "║" + RESET + BOLD + "       Welcome to StreamFlow Harmony Player!     " + RESET + CYAN + "║" + RESET);
+        System.out.println(CYAN + "║" + RESET + BOLD + "     Welcome to StreamFlow Harmony Player!  " + RESET + CYAN + "║" + RESET);
         System.out.println(CYAN + "╠════════════════════════════════════════════╣" + RESET);
         System.out.println(CYAN + "║" + RESET + GREEN + "  1. " + RESET + BOLD + "Login                                 " + RESET + CYAN + " ║" + RESET);
         System.out.println(CYAN + "║" + RESET + YELLOW + "  2. " + RESET + BOLD + "Register                              " + RESET + CYAN + " ║" + RESET);
@@ -151,7 +151,7 @@ public class Main {
             System.out.println(YELLOW + "  - Switch Playlist -> 'switch [playlist name]'" + RESET);
         } else {
             System.out.println(RED + "\n------------------------------------------" + RESET);
-            System.out.println(RED + "  Get Membership for only $1 -> 'm'" + RESET);
+            System.out.println(RED + "  Get Membership for only 10 Taka -> 'm'" + RESET);
             System.out.println(RED + "------------------------------------------" + RESET);
         }
 
