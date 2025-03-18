@@ -1,272 +1,381 @@
-package com.odyssey.components;
+package com.odyssey.controllers;
 
-import com.odyssey.components.utils.FileLoader;
-import com.odyssey.controllers.MainController;
-import com.odyssey.services.PlaylistService;
+import com.odyssey.components.Song;
+import com.odyssey.components.StateManager;
+import com.odyssey.services.ShuffleService;
+import com.odyssey.components.SongFilter;
+import com.odyssey.services.HistoryService;
+import com.odyssey.services.SortService;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 import java.util.stream.Collectors;
 
-public class CommandHandler {
-    private final MainController mainController;
-    private final PlaylistService playlistService;
-    private final FavouriteManager favouriteManager;
-    private final String baseDirectory;
-    private String newDirectory;
+public class MainController {
+    private final PlayerController playerController;
+    private final HistoryService historyService;
+    private final SongFilter songFilter;
+    private List<String> songs;
+    private int currentIndex;
+    private boolean hasSongs;
+    private final StateManager stateManager;
+    private String currentSongPath;
+    private long playbackPosition;
+    private ShuffleService shuffleService = new ShuffleService(); // Initialize ShuffleService
+    private boolean isShuffleEnabled = false;
+    private final SortService sortService = new SortService();
 
-    public CommandHandler(String baseDirectory, MainController mainController, PlaylistService playlistService) {
-        this.baseDirectory = baseDirectory;
-        this.mainController = mainController;
-        this.playlistService = playlistService;
-        this.favouriteManager = new FavouriteManager(baseDirectory);
+    public MainController(List<String> songs, HistoryService historyService) {
+        this.songs = songs;
+        this.songFilter = new SongFilter();
+        this.currentIndex = 0;
+        this.hasSongs = !songs.isEmpty();
+        this.shuffleService = new ShuffleService();
+        this.isShuffleEnabled = false;
+        this.playerController = new PlayerController(this::playNextSong); // Use method reference
+        this.historyService = historyService;
+        this.stateManager = new StateManager();
+        this.currentSongPath = null; // Initialize to null
+        this.playbackPosition = 0;
+        loadState();
     }
 
-    public void handleCommand(String input, PlaylistManager playlistManager, String currentDirectory) {
-        try {
-            if (input.isEmpty()) {
-                mainController.handleInput("stop");
-            } else if (input.startsWith("create ")) {
-                handleCreateCommand(input, playlistManager);
-            }else if (input.startsWith("filter ")) {
-                handleFilterCommand(input);
-            }else if (input.equalsIgnoreCase("h")) {
-                mainController.showHistory();
-            } else if (input.startsWith("delete ")) {
-                handleDeleteCommand(input, playlistManager);
-            } else if (input.startsWith("switch ")) {
-                handleSwitchCommand(input);
-            } else if (input.equals("add song")) {
-                handleAddSong(currentDirectory);
-            } else if (input.equals("remove song")) {
-                handleRemoveSong();
-            } else if (input.equals("s")) {
-                handleSearchCommand();
-            } else if (input.equalsIgnoreCase("c")) {
-                mainController.toggleShuffle();
-            } else if (input.equalsIgnoreCase("f")) {
-                handleFavouriteCommand();
-            } else if (input.equalsIgnoreCase("reset")) { // Handle the reset command
-                mainController.resetState();
-            } else if (input.equalsIgnoreCase("l")) {
-                handleListFavouritesCommand();
-            } else {
-                mainController.handleInput(input);
-            }
-        } catch (IOException e) {
-            System.err.println("Error processing command: " + e.getMessage());
-        }
-    }
+    private void loadState() {
+        var state = stateManager.loadState();
+        if (state != null && !state.isEmpty()) {
+            currentSongPath = state.getProperty("currentSongPath");
+            playbackPosition = Long.parseLong(state.getProperty("playbackPosition", "0"));
+            System.out.println("Loaded state: Song = " + currentSongPath + ", Position = " + playbackPosition + "s");
 
-    private void handleFavouriteCommand() throws IOException {
-        String currentSongPath = mainController.getCurrentSongPath();
-        if (currentSongPath != null) {
-            favouriteManager.addSongToFavourites(currentSongPath);
-            System.out.println("Song added to favourites.");
-        } else {
-            System.out.println("No song is currently playing.");
-        }
-    }
-
-    private void handleListFavouritesCommand() throws IOException {
-        List<String> favouriteSongs = favouriteManager.getFavouriteSongs();
-        if (favouriteSongs.isEmpty()) {
-            System.out.println("No songs in favourites.");
-        } else {
-            System.out.println("Favourite songs:");
-            for (String song : favouriteSongs) {
-                System.out.println(song);
-            }
-        }
-
-
-    }
-
-
-    private void handleSearchCommand() {
-        System.out.print("Enter song name to search [Song name - Artist name] : ");
-        String songName = new java.util.Scanner(System.in).nextLine();
-
-        if (mainController.searchAndPlaySong(songName)) {
-            System.out.println("Playing searched song: " + songName);
-        } else {
-            System.out.println("Song not available.");
-        }
-    }
-
-    private void handleAddSong(String currentDirectory) throws IOException {
-        // List available playlists
-        List<Path> playlists = Files.list(Paths.get("src/resources/playlists"))
-                .filter(Files::isDirectory)
-                .collect(Collectors.toList());
-
-        System.out.println("\n-----------------------------");
-        System.out.println("Available playlists:");
-        for (int i = 0; i < playlists.size(); i++) {
-            System.out.println(i + ": " + playlists.get(i).getFileName());
-        }
-
-        // Prompt the user to select a playlist
-        System.out.print("Enter the index of the playlist: ");
-        int playlistIndex = new Scanner(System.in).nextInt();
-
-        if (playlistIndex >= 0 && playlistIndex < playlists.size()) {
-            String playlistName = playlists.get(playlistIndex).getFileName().toString();
-
-            // List available songs in the songs folder
-            List<Path> availableSongs = Files.list(Paths.get("src/resources/playlists/songs"))
-                    .collect(Collectors.toList());
-
-            System.out.println("\n-----------------------------");
-            System.out.println("Available songs:");
-            for (int i = 0; i < availableSongs.size(); i++) {
-                System.out.println(i + ": " + availableSongs.get(i).getFileName());
-            }
-            System.out.println("-----------------------------");
-            // Prompt the user to select a song
-            System.out.print("Enter the index of the song you want to add: ");
-            int songIndex = new Scanner(System.in).nextInt();
-
-            if (songIndex >= 0 && songIndex < availableSongs.size()) {
-                Path selectedSong = availableSongs.get(songIndex);
-
-                // Add the song to the selected playlist
-                playlistService.addSongToPlaylist(playlistName, selectedSong.toString());
-
-                // Display the updated playlist
-                displayPlaylistContents(playlistName);
-            } else {
-                System.out.println("Invalid song index. Please try again.");
-            }
-        } else {
-            System.out.println("Invalid playlist index. Please try again.");
-        }
-    }
-
-    private void handleRemoveSong() throws IOException {
-        // List available playlists
-        List<Path> playlists = Files.list(Paths.get("src/resources/playlists"))
-                .filter(Files::isDirectory)
-                .collect(Collectors.toList());
-
-        System.out.println("\n-----------------------------");
-        System.out.println("Available playlists:");
-        for (int i = 0; i < playlists.size(); i++) {
-            System.out.println(i + ": " + playlists.get(i).getFileName());
-        }
-
-        // Prompt the user to select a playlist
-        System.out.print("Enter the index of the playlist: ");
-        int playlistIndex = new Scanner(System.in).nextInt();
-
-        if (playlistIndex >= 0 && playlistIndex < playlists.size()) {
-            String playlistName = playlists.get(playlistIndex).getFileName().toString();
-
-            // List songs in the selected playlist
-            List<Path> songsInPlaylist = Files.list(Paths.get("src/resources/playlists/" + playlistName))
-                    .collect(Collectors.toList());
-
-            System.out.println("\n-----------------------------");
-            System.out.println("Songs in playlist '" + playlistName + "':");
-            for (int i = 0; i < songsInPlaylist.size(); i++) {
-                System.out.println(i + ": " + songsInPlaylist.get(i).getFileName());
-            }
-            System.out.println("-----------------------------");
-
-            // Prompt the user to select a song to delete
-            System.out.print("Enter the index of the song to delete: ");
-            int songIndex = new Scanner(System.in).nextInt();
-
-            if (songIndex >= 0 && songIndex < songsInPlaylist.size()) {
-                String songName = songsInPlaylist.get(songIndex).getFileName().toString();
-
-                // Delete the song from the selected playlist
-                playlistService.deleteSongFromPlaylist(playlistName, songName);
-
-                // Display the updated playlist
-                displayPlaylistContents(playlistName);
-            } else {
-                System.out.println("Invalid song index. Please try again.");
-            }
-        } else {
-            System.out.println("Invalid playlist index. Please try again.");
-        }
-    }
-
-    private void displayPlaylistContents(String playlistName) throws IOException {
-        List<String> songs = playlistService.listSongsInPlaylist(playlistName);
-        System.out.println("\n-----------------------------");
-        System.out.println("Songs in playlist '" + playlistName + "':");
-        for (String song : songs) {
-            System.out.println("- " + song);
-        }
-        System.out.println("-----------------------------\n");
-    }
-
-    private void handleCreateCommand(String input, PlaylistManager playlistManager) {
-        String[] commandParts = input.split(" ", 2);
-        if (commandParts.length == 2) {
-            String newPlaylist = commandParts[1];
-            playlistManager.createNewPlaylist(newPlaylist);
-        } else {
-            System.out.println("Invalid create command. Use 'create [playlist name]'.");
-        }
-    }
-
-    private void handleDeleteCommand(String input, PlaylistManager playlistManager) {
-        String[] commandParts = input.split(" ", 2);
-        if (commandParts.length == 2) {
-            String playlistToDelete = commandParts[1];
-            playlistManager.deletePlaylist(playlistToDelete);
-        } else {
-            System.out.println("Invalid delete command. Use 'delete [playlist name]'.");
-        }
-    }
-
-    private void handleSwitchCommand(String input) {
-        String[] commandParts = input.split(" ", 2);
-        if (commandParts.length == 2) {
-            String newPlaylist = commandParts[1];
-            newDirectory = baseDirectory + "/" + newPlaylist;
-
-            if (Files.exists(Paths.get(newDirectory))) {
-                List<String> newSongs = FileLoader.loadSongsFromFolder(newDirectory);
-                mainController.stopCurrentSong();
-
-                mainController.setSongs(newSongs);
-                try {
-                    mainController.start();
-                } catch (IOException e) {
-                    System.err.println("Error starting playback: " + e.getMessage());
+            // Find the index of the saved song in the playlist
+            if (currentSongPath != null) {
+                currentIndex = songs.indexOf(currentSongPath);
+                if (currentIndex == -1) {
+                    System.out.println("Saved song not found in the current playlist. Starting fresh.");
+                    currentSongPath = null;
+                    playbackPosition = 0;
+                    currentIndex = 0;
                 }
-            } else {
-                System.out.println("Playlist '" + newPlaylist + "' does not exist.");
-                newDirectory = null;
             }
         } else {
-            System.out.println("Invalid switch command. Use 'switch [playlist name]'.");
+            System.out.println("No saved state found. Starting fresh.");
         }
     }
 
-    private void handleFilterCommand(String input) {
-        String[] parts = input.split(" ", 3); // Split into 3 parts: "filter", type, value
-        if (parts.length == 3) {
-            String filterType = parts[1]; // e.g., "artist"
-            String filterValue = parts[2]; // e.g., "Adele"
-            mainController.handleFilterCommand(filterType, filterValue);
+    // Save the current state
+    public void saveState() {
+        if (currentSongPath != null) {
+            long currentPlaybackTime = playerController.getCurrentPlaybackTime();
+            stateManager.saveState(currentSongPath, currentPlaybackTime);
         } else {
-            System.out.println("Invalid Filter command. Use 'filter [artist/song] [value]'.");
+            System.out.println("No song is currently playing. State not saved.");
+        }
+    }
+
+    public void setSongs(List<String> newSongs) {
+        this.songs = newSongs;
+        this.currentIndex = 0;
+        this.hasSongs = !newSongs.isEmpty();
+    }
+
+    public void start() throws IOException {
+        if (!hasSongs) {
+            System.out.println("No songs available in the current playlist.");
+        } else {
+            playCurrentSong();
+        }
+    }
+
+    public void toggleShuffle() {
+        isShuffleEnabled = !isShuffleEnabled;
+        if (isShuffleEnabled) {
+            shuffleService.initializeShuffle(songs.size());
+            System.out.println("Shuffle mode is ON.");
+        } else {
+            System.out.println("Shuffle mode is OFF.");
+        }
+    }
+
+    public void handleInput(String input) throws IOException {
+        if (!hasSongs) {
+            System.out.println("No songs available. Please switch to a playlist with songs.");
+            return;
+        }
+
+        switch (input.toLowerCase()) {
+            case "p":
+                playerController.pause();
+                System.out.println("Song paused.");
+                break;
+            case "r":
+                playerController.resume();
+                System.out.println("Song resumed.");
+                break;
+            case "n":
+                playNextSong();
+                break;
+            case "b":
+                playPreviousSong();
+                break;
+            case "stop":
+                playerController.stop();
+                System.out.println("Song stopped.");
+                break;
+            case "t":
+                displayPlaybackTime();
+                break;
+            case "speed":
+                setPlaybackSpeed();
+                break;
+            case "reset": // Handle the reset command
+                resetState();
+                playCurrentSong();
+            default:
+                System.out.println("Invalid command.");
+        }
+    }
+
+    public void playCurrentSong() throws IOException {
+        if (currentIndex < 0 || currentIndex >= songs.size()) {
+            System.out.println("Invalid song index. Starting fresh.");
+            currentIndex = 0; // Reset to the first song
+        }
+        currentSongPath = songs.get(currentIndex); // Update currentSongPath
+        System.out.println("Now playing: " + currentSongPath); // Debug log
+        historyService.addToHistory(currentSongPath);
+
+        // Extract song name for display
+        String[] songParts = currentSongPath.split("/");
+        String rawSongName = songParts[songParts.length - 1];
+        String songName = rawSongName.contains("_") ? rawSongName.substring(rawSongName.indexOf("_") + 1) : rawSongName;
+        String albumName = (songParts.length > 3) ? songParts[3] : "Unknown Album";
+
+        System.out.println();
+        System.out.println();
+        System.out.println("You are on: " + albumName);
+        System.out.println("---------------------------------------------------------------");
+        System.out.println("Playing song: " + songName);
+        System.out.println("---------------------------------------------------------------");
+
+        playerController.play(currentSongPath);
+    }
+
+    private void playNextSong() throws IOException {
+        if (isShuffleEnabled) {
+            currentIndex = shuffleService.getNextShuffledIndex();
+        } else {
+            if (currentIndex < songs.size() - 1) {
+                currentIndex++;
+            } else {
+                System.out.println("You are at the last song. No next song available.");
+                return;
+            }
+        }
+        playCurrentSong();
+    }
+
+    private void playPreviousSong() throws IOException {
+        if (currentIndex > 0) {
+            currentIndex--; // Move to the previous song
+            if (isShuffleEnabled) {
+                // If shuffle is enabled, get the previous shuffled index
+                currentIndex = shuffleService.getPreviousShuffledIndex();
+            }
+            playCurrentSong(); // Play the previous song
+        } else {
+            System.out.println("You are at the first song. No previous song available.");
+        }
+    }
+
+    public void stopCurrentSong() {
+        try {
+            playerController.stop();
+            System.out.println("Current song stopped.");
+        } catch (Exception e) {
+            System.err.println("Error stopping the current song: " + e.getMessage());
+        }
+    }
+
+    public boolean searchAndPlaySong(String searchTerm) {
+        List<String> matchingSongs = new ArrayList<>();
+
+        // Find all songs that match the search term (case-insensitive and partial match)
+        for (int i = 0; i < songs.size(); i++) {
+            String path = songs.get(i);
+            String fileName = Paths.get(path).getFileName().toString();
+
+            // Check if the file name contains the search term (case-insensitive)
+            if (fileName.toLowerCase().contains(searchTerm.toLowerCase())) {
+                matchingSongs.add(fileName);
+            }
+        }
+
+        // If no matches found
+        if (matchingSongs.isEmpty()) {
+            System.out.println("No songs found matching: " + searchTerm);
+            return false;
+        }
+
+        // Display all matching songs
+        System.out.println("Matching songs:");
+        for (int i = 0; i < matchingSongs.size(); i++) {
+            System.out.println((i + 1) + ": " + matchingSongs.get(i));
+        }
+
+        // Let the user choose which song to play
+        System.out.print("Enter the number of the song you want to play: ");
+        Scanner scanner = new Scanner(System.in);
+        int choice = scanner.nextInt();
+
+        // Validate the user's choice
+        if (choice > 0 && choice <= matchingSongs.size()) {
+            String selectedSong = matchingSongs.get(choice - 1);
+            for (int i = 0; i < songs.size(); i++) {
+                String path = String.valueOf(songs.get(i));
+                String fileName = Paths.get(path).getFileName().toString();
+
+                if (fileName.equals(selectedSong)) {
+                    currentIndex = i;
+                    try {
+                        playCurrentSong();
+                    } catch (IOException e) {
+                        System.err.println("Error playing the song: " + e.getMessage());
+                    }
+                    return true;
+                }
+            }
+        } else {
+            System.out.println("Invalid choice.");
+        }
+
+        return false;
+    }
+
+    public String getCurrentSongPath() {
+        if (hasSongs && currentIndex >= 0 && currentIndex < songs.size()) {
+            return songs.get(currentIndex);
+        }
+        return null;
+    }
+
+    private void displayPlaybackTime() {
+        long currentTime = playerController.getCurrentPlaybackTime();
+        System.out.println("Current playback time: " + currentTime + " seconds");
+    }
+
+    private void setPlaybackSpeed() {
+        System.out.print("Enter playback speed (e.g., 1.0 for normal, 1.5 for 1.5x): ");
+        Scanner scanner = new Scanner(System.in);
+        float speed = scanner.nextFloat();
+        playerController.setPlaybackSpeed(speed);
+    }
+
+    public void handleFilterCommand(String filterType, String filterValue) {
+        List<String> filteredSongs;
+
+        switch (filterType.toLowerCase()) {
+            case "artist":
+                filteredSongs = songFilter.filterByArtist(songs, filterValue);
+                break;
+            case "song":
+                filteredSongs = songFilter.filterBySongName(songs, filterValue);
+                break;
+            default:
+                System.out.println("Invalid filter type. Use 'artist' or 'song'.");
+                return;
+        }
+
+
+        if (filteredSongs.isEmpty()) {
+            System.out.println("No songs found matching the filter.");
+        } else {
+            System.out.println("Filtered songs:");
+            for (String songPath : filteredSongs) {
+                String[] parts = songPath.split("/");
+                String songName = parts[parts.length - 1]; // Extract the song name
+                System.out.println(songName);
+            }
         }
     }
 
 
-    public String getNewDirectory() {
-        return newDirectory;
+    public void showHistory() {
+        ArrayList<String> history = historyService.getHistory();
+        if (history.isEmpty()) {
+            System.out.println("No songs have been played yet.");
+        } else {
+            System.out.println("Playback History:");
+            for (int i = 0; i < history.size(); i++) {
+                System.out.println((i + 1) + ": " + history.get(i));
+            }
+        }
     }
+    
+    // Reset the state
+    public void resetState() throws IOException {
+        System.out.println("Resetting state...");
+        stopCurrentSong();
+        stateManager.resetState();
+        currentSongPath = null;
+        playbackPosition = 0;
+        currentIndex = 0;
+        System.out.println("State reset. Playback will start from the beginning.");
+        if (hasSongs) {
+            playCurrentSong();
+        } else {
+            System.out.println("No songs available in the playlist.");
+        }
+    }
+
+    public void sortSongs(String sortBy) {
+        // Convert List<String> (file paths) to List<Song>
+        List<Song> songList = songs.stream()
+                .map(Song::fromFilePath) // Convert each file path to a Song object
+                .collect(Collectors.toList());
+
+        // Sort the songs
+        switch (sortBy.toLowerCase()) {
+            case "title":
+                songList = sortService.sortByTitle(songList);
+                System.out.println("Songs sorted by title.");
+                break;
+            case "artist":
+                songList = sortService.sortByArtist(songList);
+                System.out.println("Songs sorted by artist.");
+                break;
+            case "album":
+                songList = sortService.sortByAlbum(songList);
+                System.out.println("Songs sorted by album.");
+                break;
+            default:
+                System.out.println("Invalid sort option. Use 'title', 'artist', or 'album'.");
+                return;
+        }
+
+        // Convert List<Song> back to List<String> (file paths)
+        songs = songList.stream()
+                .map(song -> {
+                    // Reconstruct the file path from the Song object
+                    String fileName = song.getTitle() + ".mp3"; // Use only the title for the file name
+                    return "src/resources/playlists/songs/" + fileName; // Use the correct directory structure
+                })
+                .collect(Collectors.toList());
 
 
 }
+}
+
+
+
+
+
+
+
+
+
+
+
+

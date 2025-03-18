@@ -1,25 +1,26 @@
 package com.odyssey.services;
 
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.Collections;
+import com.odyssey.components.Song;
 import java.util.Comparator;
 import java.util.List;
 
 public class SortService {
 
-
-    public void sortSongsByName(List<String> songs) {
-        Collections.sort(songs, Comparator.comparing(this::getFileNameWithoutExtension));
+    // Sort songs by title
+    public List<Song> sortByTitle(List<Song> songs) {
+        songs.sort(Comparator.comparing(Song::getTitle));
+        return songs;
     }
 
+    // Sort songs by artist
+    public List<Song> sortByArtist(List<Song> songs) {
+        songs.sort(Comparator.comparing(Song::getArtist));
+        return songs;
+    }
 
-    private String getFileNameWithoutExtension(String filePath) {
-        Path path = Paths.get(filePath);
-        String fileName = path.getFileName().toString();
-        int dotIndex = fileName.lastIndexOf('.');
-        return (dotIndex == -1) ? fileName : fileName.substring(0, dotIndex);
+    // Sort songs by album
+    public List<Song> sortByAlbum(List<Song> songs) {
+        songs.sort(Comparator.comparing(Song::getAlbum));
+        return songs;
     }
 }
-
-
