@@ -1,16 +1,18 @@
 package com.odyssey.controllers;
 
+import com.odyssey.components.Song;
 import com.odyssey.components.StateManager;
 import com.odyssey.services.ShuffleService;
 import com.odyssey.components.SongFilter;
 import com.odyssey.services.HistoryService;
+import com.odyssey.services.SortService;
 
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Properties;
 import java.util.Scanner;
+import java.util.stream.Collectors;
 
 public class MainController {
     private final PlayerController playerController;
@@ -24,6 +26,7 @@ public class MainController {
     private long playbackPosition;
     private ShuffleService shuffleService = new ShuffleService(); // Initialize ShuffleService
     private boolean isShuffleEnabled = false;
+    private final SortService sortService = new SortService();
 
     public MainController(List<String> songs, HistoryService historyService) {
         this.songs = songs;
@@ -54,6 +57,7 @@ public class MainController {
                     System.out.println("Saved song not found in the current playlist. Starting fresh.");
                     currentSongPath = null;
                     playbackPosition = 0;
+                    currentIndex = 0;
                 }
             }
         } else {
@@ -135,6 +139,10 @@ public class MainController {
     }
 
     public void playCurrentSong() throws IOException {
+        if (currentIndex < 0 || currentIndex >= songs.size()) {
+            System.out.println("Invalid song index. Starting fresh.");
+            currentIndex = 0; // Reset to the first song
+        }
         currentSongPath = songs.get(currentIndex); // Update currentSongPath
         System.out.println("Now playing: " + currentSongPath); // Debug log
         historyService.addToHistory(currentSongPath);
@@ -226,7 +234,7 @@ public class MainController {
         if (choice > 0 && choice <= matchingSongs.size()) {
             String selectedSong = matchingSongs.get(choice - 1);
             for (int i = 0; i < songs.size(); i++) {
-                String path = songs.get(i);
+                String path = String.valueOf(songs.get(i));
                 String fileName = Paths.get(path).getFileName().toString();
 
                 if (fileName.equals(selectedSong)) {
@@ -305,10 +313,7 @@ public class MainController {
             }
         }
     }
-
-
-
-
+    
     // Reset the state
     public void resetState() throws IOException {
         System.out.println("Resetting state...");
@@ -324,7 +329,46 @@ public class MainController {
             System.out.println("No songs available in the playlist.");
         }
     }
-    }
+
+    public void sortSongs(String sortBy) {
+        // Convert List<String> (file paths) to List<Song>
+        List<Song> songList = songs.stream()
+                .map(Song::fromFilePath) // Convert each file path to a Song object
+                .collect(Collectors.toList());
+
+        // Sort the songs
+        switch (sortBy.toLowerCase()) {
+            case "title":
+                songList = sortService.sortByTitle(songList);
+                System.out.println("Songs sorted by title.");
+                break;
+            case "artist":
+                songList = sortService.sortByArtist(songList);
+                System.out.println("Songs sorted by artist.");
+                break;
+            case "album":
+                songList = sortService.sortByAlbum(songList);
+                System.out.println("Songs sorted by album.");
+                break;
+            default:
+                System.out.println("Invalid sort option. Use 'title', 'artist', or 'album'.");
+                return;
+        }
+
+        // Convert List<Song> back to List<String> (file paths)
+        songs = songList.stream()
+                .map(song -> {
+                    // Reconstruct the file path from the Song object
+                    String fileName = song.getTitle() + ".mp3"; // Use only the title for the file name
+                    return "src/resources/playlists/songs/" + fileName; // Use the correct directory structure
+                })
+                .collect(Collectors.toList());
+
+
+}
+}
+
+
 
 
 
