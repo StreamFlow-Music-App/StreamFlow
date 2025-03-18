@@ -18,10 +18,10 @@ import java.util.Scanner;
 public class Main {
 
     public static void main(String[] args) {
-        if (!authenticateUser()) {
-            System.out.println("Invalid credentials. Exiting application.");
-            return;
-        }
+//        if (!authenticateUser()) {
+//            System.out.println("Invalid credentials. Exiting application.");
+//            return;
+//        }
 
         try (Scanner scanner = new Scanner(System.in)) {
             String baseDirectory = "src/resources/playlists";
@@ -114,6 +114,7 @@ public class Main {
             String line;
             while ((line = reader.readLine()) != null) {
                 String[] credentials = line.split(",");
+                System.out.println(credentials[0]);
                 if (credentials[0].trim().equals(username) && credentials[1].trim().equals(password)) {
                     return true;
                 }

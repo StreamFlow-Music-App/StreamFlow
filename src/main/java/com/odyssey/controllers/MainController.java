@@ -41,7 +41,7 @@ public class MainController {
     }
 
     private void loadState() {
-        var state = stateManager.loadState();
+        Properties state = stateManager.loadState();
         if (state != null && !state.isEmpty()) {
             currentSongPath = state.getProperty("currentSongPath");
             playbackPosition = Long.parseLong(state.getProperty("playbackPosition", "0"));

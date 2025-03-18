@@ -39,7 +39,12 @@ public class PlayerController {
         audioPlayer.setPlaybackSpeed(speed); // Pass the speed to AudioPlayer
     }
 
+    public long getCurrentPlaybackTime() {
+        return  audioPlayer.getCurrentPlaybackTime();
+    }
+
+
     public interface OnSongEndCallback{
-        void onSongEnd();
+        void onSongEnd() throws IOException;
     }
 }

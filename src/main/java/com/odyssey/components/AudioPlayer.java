@@ -43,7 +43,11 @@ public class AudioPlayer {
                         @Override
                         public void playbackFinished(PlaybackEvent evt) {
                             if (onSongEndListener != null) {
-                                onSongEndListener.onSongEnd();
+                                try {
+                                    onSongEndListener.onSongEnd();
+                                } catch (IOException e) {
+                                    throw new RuntimeException(e);
+                                }
                             }
                         }
                     });
@@ -110,12 +114,9 @@ public class AudioPlayer {
     }
 
     public interface OnSongEndListener {
-        void onSongEnd();
+        void onSongEnd() throws IOException;
     }
 }
 
 
-    public interface OnSongEndListener {
-        void onSongEnd();
-    }
-}
+
