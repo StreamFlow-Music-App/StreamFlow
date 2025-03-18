@@ -36,8 +36,8 @@ public class Song {
 
     public static Song fromFilePath(String filePath) {
         String fileName = filePath.substring(filePath.lastIndexOf("/") + 1); // Extract file name
-        String title = fileName.replace(".mp3", ""); // Remove file extension
-        String artist = "Unknown Artist"; // Default artist
+        String title = fileName.replace(".mp3", "");
+        String artist = "Unknown Artist";
         if (fileName.contains(" - ")) {
             String[] parts = fileName.split(" - ");
             title = parts[0].replace(".mp3", "");

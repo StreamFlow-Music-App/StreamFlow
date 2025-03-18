@@ -14,8 +14,8 @@ public class AudioPlayer {
     private String currentSongPath;
     private long pausePosition = 0;
     private boolean isPaused = false;
-    private long startTime = 0; // Track start time for playback time calculation
-    private float playbackSpeed = 1.0f; // Default playback speed
+    private long startTime = 0;
+    private float playbackSpeed = 1.0f;
 
     private OnSongEndListener onSongEndListener;
 
@@ -25,7 +25,7 @@ public class AudioPlayer {
 
     public void play(String songPath) {
         try {
-            stop(); // Ensure no previous instance is running
+            stop();
 
             currentSongPath = songPath;
             fileInputStream = new FileInputStream(currentSongPath);
@@ -51,7 +51,7 @@ public class AudioPlayer {
                             }
                         }
                     });
-                    player.play(); // Start playback
+                    player.play();
                 } catch (JavaLayerException e) {
                     e.printStackTrace();
                 }
@@ -97,15 +97,15 @@ public class AudioPlayer {
         if (player != null && startTime > 0) {
             return (System.currentTimeMillis() - startTime) / 1000; // Return time in seconds
         }
-        return pausePosition / 1000; // Return paused time in seconds
+        return pausePosition / 1000;
     }
 
     public void setPlaybackSpeed(float speed) {
         if (speed > 0) {
             this.playbackSpeed = speed;
             if (player != null) {
-                stop();  // Stop current playback
-                play(currentSongPath);  // Restart with new speed
+                stop();
+                play(currentSongPath);
             }
             System.out.println("Playback speed set to: " + speed + "x");
         } else {

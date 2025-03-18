@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Properties;
 import java.util.Scanner;
 import java.util.stream.Collectors;
+import java.util.concurrent.TimeUnit;
 
 public class MainController {
     private final PlayerController playerController;
@@ -25,7 +26,7 @@ public class MainController {
     private final StateManager stateManager;
     private String currentSongPath;
     private long playbackPosition;
-    private ShuffleService shuffleService = new ShuffleService(); // Initialize ShuffleService
+    private ShuffleService shuffleService = new ShuffleService();
     private boolean isShuffleEnabled = false;
     private final SortService sortService = new SortService();
 
@@ -39,7 +40,7 @@ public class MainController {
         this.playerController = new PlayerController(this::playNextSong); // Use method reference
         this.historyService = historyService;
         this.stateManager = new StateManager();
-        this.currentSongPath = null; // Initialize to null
+        this.currentSongPath = null;
         this.playbackPosition = 0;
         loadState();
     }
@@ -51,7 +52,6 @@ public class MainController {
             playbackPosition = Long.parseLong(state.getProperty("playbackPosition", "0"));
             System.out.println("Loaded state: Song = " + currentSongPath + ", Position = " + playbackPosition + "s");
 
-            // Find the index of the saved song in the playlist
             if (currentSongPath != null) {
                 currentIndex = songs.indexOf(currentSongPath);
                 if (currentIndex == -1) {
@@ -131,7 +131,7 @@ public class MainController {
             case "speed":
                 setPlaybackSpeed();
                 break;
-            case "reset": // Handle the reset command
+            case "reset":
                 resetState();
                 playCurrentSong();
             default:
@@ -142,24 +142,41 @@ public class MainController {
     public void playCurrentSong() throws IOException {
         if (currentIndex < 0 || currentIndex >= songs.size()) {
             System.out.println("Invalid song index. Starting fresh.");
-            currentIndex = 0; // Reset to the first song
+            currentIndex = 0;
         }
-        currentSongPath = songs.get(currentIndex); // Update currentSongPath
-        System.out.println("Now playing: " + currentSongPath); // Debug log
+        currentSongPath = songs.get(currentIndex);
+        System.out.println("Now playing: " + currentSongPath);
         historyService.addToHistory(currentSongPath);
 
-        // Extract song name for display
         String[] songParts = currentSongPath.split("/");
         String rawSongName = songParts[songParts.length - 1];
         String songName = rawSongName.contains("_") ? rawSongName.substring(rawSongName.indexOf("_") + 1) : rawSongName;
         String albumName = (songParts.length > 3) ? songParts[3] : "Unknown Album";
 
+
+
+        String RESET = "\u001B[0m";
+        String BOLD = "\u001B[1m";
+        String CYAN = "\u001B[36m";
+        String GREEN = "\u001B[32m";
+        String BLUE = "\u001B[34m";
+        String YELLOW = "\u001B[33m";
+
+        System.out.println("\n\n");
+
+        System.out.println(CYAN + "════════════════════════════════════════════════════════════════" + RESET);
+        System.out.println(CYAN + "🎶 " + BOLD + "You are on: " + RESET + YELLOW + albumName + RESET);
+        System.out.println(CYAN + "════════════════════════════════════════════════════════════════" + RESET);
+
         System.out.println();
-        System.out.println();
-        System.out.println("You are on: " + albumName);
-        System.out.println("---------------------------------------------------------------");
-        System.out.println("Playing song: " + songName);
-        System.out.println("---------------------------------------------------------------");
+
+        System.out.println(CYAN + "---------------------------------------------------------------" + RESET);
+        System.out.println(BOLD + GREEN + "Playing song: " + RESET + BLUE + songName + RESET);
+        System.out.println(CYAN + "---------------------------------------------------------------" + RESET);
+
+        System.out.println("\n\n");
+
+
 
         playerController.play(currentSongPath);
     }
