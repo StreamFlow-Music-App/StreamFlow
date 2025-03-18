@@ -7,10 +7,7 @@ import com.odyssey.controllers.MainController;
 import com.odyssey.services.HistoryService;
 import com.odyssey.services.PlaylistService;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.util.List;
 import java.util.Objects;
 import java.util.Scanner;
@@ -18,19 +15,42 @@ import java.util.Scanner;
 public class Main {
 
     public static void main(String[] args) {
-//        if (!authenticateUser()) {
-//            System.out.println("Invalid credentials. Exiting application.");
-//            return;
-//        }
+        Scanner scanner = new Scanner(System.in);
 
-        try (Scanner scanner = new Scanner(System.in)) {
+        System.out.println("Welcome to Odyssey Music Player!");
+        System.out.println("1. Login");
+        System.out.println("2. Register");
+        System.out.print("Choose an option (1/2): ");
+
+        int choice = scanner.nextInt();
+        scanner.nextLine();
+
+        boolean authenticated = false;
+
+        if (choice == 1) {
+            authenticated = authenticateUser(scanner);
+        } else if (choice == 2) {
+            registerUser(scanner);
+            System.out.println("Registration successful! Please log in.");
+            authenticated = authenticateUser(scanner);
+        } else {
+            System.out.println("Invalid choice. Exiting...");
+            return;
+        }
+
+        if (!authenticated) {
+            System.out.println("Invalid credentials. Exiting application.");
+            return;
+        }
+
+        try {
             String baseDirectory = "src/resources/playlists";
             String initialPlaylist = "songs";
             String currentDirectory = baseDirectory + "/" + initialPlaylist;
 
             List<String> songs = FileLoader.loadSongsFromFolder(currentDirectory);
             HistoryService historyService = new HistoryService();
-            MainController mainController = new MainController(songs,historyService);
+            MainController mainController = new MainController(songs, historyService);
             PlaylistService playlistService = new PlaylistService();
             mainController.start();
 
@@ -45,13 +65,14 @@ public class Main {
                     System.out.println("No song is playing. State not saved.");
                 }
             }));
+
             while (true) {
                 String directory = commandHandler.getNewDirectory();
                 displayCommands(directory);
 
                 String input = scanner.nextLine();
                 if (input.equalsIgnoreCase("reset")) {
-                    mainController.resetState(); // Reset state if the user enters "reset"
+                    mainController.resetState();
                 } else {
                     commandHandler.handleCommand(input, playlistManager, currentDirectory);
                 }
@@ -96,10 +117,9 @@ public class Main {
         System.out.println("Reset State -> 'reset'");
         System.out.println("Stop -> Press Enter");
         System.out.println("-----------------------------\n");
-
     }
-    private static boolean authenticateUser() {
-        Scanner scanner = new Scanner(System.in);
+
+    private static boolean authenticateUser(Scanner scanner) {
         System.out.print("Enter username: ");
         String username = scanner.nextLine();
         System.out.print("Enter password: ");
@@ -109,20 +129,53 @@ public class Main {
     }
 
     private static boolean authenticate(String username, String password) {
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(
-                Objects.requireNonNull(Main.class.getClassLoader().getResourceAsStream("login.txt"))))) {
+        try (BufferedReader reader = new BufferedReader(new FileReader("src/resources/login.txt"))) {
             String line;
             while ((line = reader.readLine()) != null) {
                 String[] credentials = line.split(",");
-                System.out.println(credentials[0]);
                 if (credentials[0].trim().equals(username) && credentials[1].trim().equals(password)) {
+                    System.out.println("Login successful! Welcome, " + username);
                     return true;
                 }
             }
-        } catch (IOException | NullPointerException e) {
+        } catch (IOException e) {
             System.err.println("Error reading login file: " + e.getMessage());
         }
         return false;
     }
 
+    private static void registerUser(Scanner scanner) {
+        System.out.print("Choose a username: ");
+        String username = scanner.nextLine();
+        System.out.print("Choose a password: ");
+        String password = scanner.nextLine();
+
+        if (isUserExists(username)) {
+            System.out.println("Username already taken. Try another.");
+            return;
+        }
+
+        try (FileWriter writer = new FileWriter("src/resources/login.txt", true);
+             BufferedWriter bufferedWriter = new BufferedWriter(writer)) {
+            bufferedWriter.write(username + "," + password + ",false\n");
+            System.out.println("Account created successfully.");
+        } catch (IOException e) {
+            System.err.println("Error writing to login file: " + e.getMessage());
+        }
+    }
+
+    private static boolean isUserExists(String username) {
+        try (BufferedReader reader = new BufferedReader(new FileReader("src/resources/login.txt"))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                String[] credentials = line.split(",");
+                if (credentials[0].trim().equals(username)) {
+                    return true;
+                }
+            }
+        } catch (IOException e) {
+            System.err.println("Error reading login file: " + e.getMessage());
+        }
+        return false;
+    }
 }
