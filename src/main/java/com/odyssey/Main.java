@@ -284,7 +284,6 @@ public class Main {
         String RESET = "\u001B[0m";
         String BOLD = "\u001B[1m";
         String CYAN = "\u001B[36m";
-        String YELLOW = "\u001B[33m";
         String GREEN = "\u001B[32m";
         String BLUE = "\u001B[34m";
         String RED = "\u001B[31m";
