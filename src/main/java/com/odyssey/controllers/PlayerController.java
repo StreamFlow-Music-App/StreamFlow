@@ -12,13 +12,9 @@ public class PlayerController {
         this.audioPlayer = new AudioPlayer();
         this.onSongEndCallback = callBack;
 
-        audioPlayer.setOnSongEndListener(() -> {
-            try {
-                if (onSongEndCallback != null) {
-                    onSongEndCallback.onSongEnd();
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
+        audioPlayer.setOnSongEndListener(()->{
+            if(onSongEndCallback != null){
+                onSongEndCallback.onSongEnd();
             }
         });
     }
@@ -39,15 +35,16 @@ public class PlayerController {
         audioPlayer.stop();
     }
 
-    public long getCurrentPlaybackTime() {
-        return audioPlayer.getCurrentPlaybackTime();
-    }
-
     public void setPlaybackSpeed(float speed) {
-        audioPlayer.setPlaybackSpeed(speed);
+        audioPlayer.setPlaybackSpeed(speed); // Pass the speed to AudioPlayer
     }
 
-    public interface OnSongEndCallback {
-        void onSongEnd() throws IOException; // Allow IOException to be thrown
+    public long getCurrentPlaybackTime() {
+        return  audioPlayer.getCurrentPlaybackTime();
+    }
+
+
+    public interface OnSongEndCallback{
+        void onSongEnd() throws IOException;
     }
 }

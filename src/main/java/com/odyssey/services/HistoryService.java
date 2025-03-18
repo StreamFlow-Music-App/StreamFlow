@@ -13,7 +13,7 @@ public class HistoryService {
     }
 
     public void addToHistory(String songPath) {
-        history.add(songPath);
+        history.add(songPath.split("/")[4]);
     }
 
     public ArrayList<String> getHistory() {

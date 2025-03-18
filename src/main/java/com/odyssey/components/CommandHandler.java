@@ -9,6 +9,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.Scanner;
 import java.util.stream.Collectors;
 
 public class CommandHandler {
@@ -31,6 +32,8 @@ public class CommandHandler {
                 mainController.handleInput("stop");
             } else if (input.startsWith("create ")) {
                 handleCreateCommand(input, playlistManager);
+            }else if (input.startsWith("filter ")) {
+                handleFilterCommand(input);
             }else if (input.equalsIgnoreCase("h")) {
                 mainController.showHistory();
             } else if (input.startsWith("delete ")) {
@@ -47,6 +50,8 @@ public class CommandHandler {
                 mainController.toggleShuffle();
             } else if (input.equalsIgnoreCase("f")) {
                 handleFavouriteCommand();
+            } else if (input.equalsIgnoreCase("reset")) { // Handle the reset command
+                mainController.resetState();
             } else if (input.equalsIgnoreCase("l")) {
                 handleListFavouritesCommand();
             } else {
@@ -81,6 +86,7 @@ public class CommandHandler {
 
     }
 
+
     private void handleSearchCommand() {
         System.out.print("Enter song name to search [Song name - Artist name] : ");
         String songName = new java.util.Scanner(System.in).nextLine();
@@ -93,50 +99,112 @@ public class CommandHandler {
     }
 
     private void handleAddSong(String currentDirectory) throws IOException {
-        List<Path> availableSongs = Files.list(Paths.get(currentDirectory))
+        // List available playlists
+        List<Path> playlists = Files.list(Paths.get("src/resources/playlists"))
+                .filter(Files::isDirectory)
                 .collect(Collectors.toList());
 
-        System.out.println("Available songs:");
-        for (int i = 0; i < availableSongs.size(); i++) {
-            System.out.println(i + ": " + availableSongs.get(i).getFileName());
+        System.out.println("\n-----------------------------");
+        System.out.println("Available playlists:");
+        for (int i = 0; i < playlists.size(); i++) {
+            System.out.println(i + ": " + playlists.get(i).getFileName());
         }
 
-        System.out.print("Enter the index of the song you want to add: ");
-        int songIndex = Integer.parseInt(new java.util.Scanner(System.in).nextLine());
+        // Prompt the user to select a playlist
+        System.out.print("Enter the index of the playlist: ");
+        int playlistIndex = new Scanner(System.in).nextInt();
 
-        if (songIndex >= 0 && songIndex < availableSongs.size()) {
-            Path sourceDirectory = availableSongs.get(songIndex);
-            Path destinationDirectory = Paths.get(newDirectory, sourceDirectory.getFileName().toString());
+        if (playlistIndex >= 0 && playlistIndex < playlists.size()) {
+            String playlistName = playlists.get(playlistIndex).getFileName().toString();
 
-            playlistService.addSong(destinationDirectory.toString(), sourceDirectory.toString());
-            List<String> songs = FileLoader.loadSongsFromFolder(newDirectory);
-            mainController.setSongs(songs);
+            // List available songs in the songs folder
+            List<Path> availableSongs = Files.list(Paths.get("src/resources/playlists/songs"))
+                    .collect(Collectors.toList());
+
+            System.out.println("\n-----------------------------");
+            System.out.println("Available songs:");
+            for (int i = 0; i < availableSongs.size(); i++) {
+                System.out.println(i + ": " + availableSongs.get(i).getFileName());
+            }
+            System.out.println("-----------------------------");
+            // Prompt the user to select a song
+            System.out.print("Enter the index of the song you want to add: ");
+            int songIndex = new Scanner(System.in).nextInt();
+
+            if (songIndex >= 0 && songIndex < availableSongs.size()) {
+                Path selectedSong = availableSongs.get(songIndex);
+
+                // Add the song to the selected playlist
+                playlistService.addSongToPlaylist(playlistName, selectedSong.toString());
+
+                // Display the updated playlist
+                displayPlaylistContents(playlistName);
+            } else {
+                System.out.println("Invalid song index. Please try again.");
+            }
         } else {
-            System.out.println("Invalid index. Please try again.");
+            System.out.println("Invalid playlist index. Please try again.");
         }
     }
 
     private void handleRemoveSong() throws IOException {
-        List<Path> currentPlaylistSongs = Files.list(Paths.get(newDirectory))
+        // List available playlists
+        List<Path> playlists = Files.list(Paths.get("src/resources/playlists"))
+                .filter(Files::isDirectory)
                 .collect(Collectors.toList());
 
-        System.out.println("Current songs in the playlist:");
-        for (int i = 0; i < currentPlaylistSongs.size(); i++) {
-            System.out.println(i + ": " + currentPlaylistSongs.get(i).getFileName());
+        System.out.println("\n-----------------------------");
+        System.out.println("Available playlists:");
+        for (int i = 0; i < playlists.size(); i++) {
+            System.out.println(i + ": " + playlists.get(i).getFileName());
         }
 
-        System.out.print("Enter the index of the song you want to remove: ");
-        int removeIndex = Integer.parseInt(new java.util.Scanner(System.in).nextLine());
+        // Prompt the user to select a playlist
+        System.out.print("Enter the index of the playlist: ");
+        int playlistIndex = new Scanner(System.in).nextInt();
 
-        if (removeIndex >= 0 && removeIndex < currentPlaylistSongs.size()) {
-            Path songToRemove = currentPlaylistSongs.get(removeIndex);
+        if (playlistIndex >= 0 && playlistIndex < playlists.size()) {
+            String playlistName = playlists.get(playlistIndex).getFileName().toString();
 
-            playlistService.removeSong(songToRemove.toString());
-            List<String> songs = FileLoader.loadSongsFromFolder(newDirectory);
-            mainController.setSongs(songs);
+            // List songs in the selected playlist
+            List<Path> songsInPlaylist = Files.list(Paths.get("src/resources/playlists/" + playlistName))
+                    .collect(Collectors.toList());
+
+            System.out.println("\n-----------------------------");
+            System.out.println("Songs in playlist '" + playlistName + "':");
+            for (int i = 0; i < songsInPlaylist.size(); i++) {
+                System.out.println(i + ": " + songsInPlaylist.get(i).getFileName());
+            }
+            System.out.println("-----------------------------");
+
+            // Prompt the user to select a song to delete
+            System.out.print("Enter the index of the song to delete: ");
+            int songIndex = new Scanner(System.in).nextInt();
+
+            if (songIndex >= 0 && songIndex < songsInPlaylist.size()) {
+                String songName = songsInPlaylist.get(songIndex).getFileName().toString();
+
+                // Delete the song from the selected playlist
+                playlistService.deleteSongFromPlaylist(playlistName, songName);
+
+                // Display the updated playlist
+                displayPlaylistContents(playlistName);
+            } else {
+                System.out.println("Invalid song index. Please try again.");
+            }
         } else {
-            System.out.println("Invalid index. Please try again.");
+            System.out.println("Invalid playlist index. Please try again.");
         }
+    }
+
+    private void displayPlaylistContents(String playlistName) throws IOException {
+        List<String> songs = playlistService.listSongsInPlaylist(playlistName);
+        System.out.println("\n-----------------------------");
+        System.out.println("Songs in playlist '" + playlistName + "':");
+        for (String song : songs) {
+            System.out.println("- " + song);
+        }
+        System.out.println("-----------------------------\n");
     }
 
     private void handleCreateCommand(String input, PlaylistManager playlistManager) {
@@ -184,7 +252,21 @@ public class CommandHandler {
         }
     }
 
+    private void handleFilterCommand(String input) {
+        String[] parts = input.split(" ", 3); // Split into 3 parts: "filter", type, value
+        if (parts.length == 3) {
+            String filterType = parts[1]; // e.g., "artist"
+            String filterValue = parts[2]; // e.g., "Adele"
+            mainController.handleFilterCommand(filterType, filterValue);
+        } else {
+            System.out.println("Invalid Filter command. Use 'filter [artist/song] [value]'.");
+        }
+    }
+
+
     public String getNewDirectory() {
         return newDirectory;
     }
+
+
 }
