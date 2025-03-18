@@ -88,7 +88,7 @@ public class CommandHandler {
 
 
     private void handleSearchCommand() {
-        System.out.print("Enter song name to search [Song name - Artist name] : ");
+        System.out.print("Enter song name to search [Song name or Artist name] : ");
         String songName = new java.util.Scanner(System.in).nextLine();
 
         if (mainController.searchAndPlaySong(songName)) {
