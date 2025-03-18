@@ -7,7 +7,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 public class ShuffleService {
-    private List<Integer> shuffledIndices;
+    private List<Integer> shuffledIndices = new ArrayList<>();
     private int currentShuffleIndex;
 
     public void initializeShuffle(int totalSongs) {

@@ -14,16 +14,16 @@ import java.util.Scanner;
 
 public class MainController {
     private final PlayerController playerController;
-    private final ShuffleService shuffleService;
     private final HistoryService historyService;
     private final SongFilter songFilter;
     private List<String> songs;
     private int currentIndex;
     private boolean hasSongs;
-    private boolean isShuffleEnabled;
     private final StateManager stateManager;
     private String currentSongPath;
     private long playbackPosition;
+    private ShuffleService shuffleService = new ShuffleService(); // Initialize ShuffleService
+    private boolean isShuffleEnabled = false;
 
     public MainController(List<String> songs, HistoryService historyService) {
         this.songs = songs;
@@ -191,21 +191,58 @@ public class MainController {
         }
     }
 
-    public boolean searchAndPlaySong(String songName) {
+    public boolean searchAndPlaySong(String searchTerm) {
+        List<String> matchingSongs = new ArrayList<>();
+
+        // Find all songs that match the search term (case-insensitive and partial match)
         for (int i = 0; i < songs.size(); i++) {
             String path = songs.get(i);
             String fileName = Paths.get(path).getFileName().toString();
 
-            if (fileName.equalsIgnoreCase(songName + ".mp3")) {
-                currentIndex = i;
-                try {
-                    playCurrentSong();
-                } catch (IOException e) {
-                    System.err.println("Error playing the song: " + e.getMessage());
-                }
-                return true;
+            // Check if the file name contains the search term (case-insensitive)
+            if (fileName.toLowerCase().contains(searchTerm.toLowerCase())) {
+                matchingSongs.add(fileName);
             }
         }
+
+        // If no matches found
+        if (matchingSongs.isEmpty()) {
+            System.out.println("No songs found matching: " + searchTerm);
+            return false;
+        }
+
+        // Display all matching songs
+        System.out.println("Matching songs:");
+        for (int i = 0; i < matchingSongs.size(); i++) {
+            System.out.println((i + 1) + ": " + matchingSongs.get(i));
+        }
+
+        // Let the user choose which song to play
+        System.out.print("Enter the number of the song you want to play: ");
+        Scanner scanner = new Scanner(System.in);
+        int choice = scanner.nextInt();
+
+        // Validate the user's choice
+        if (choice > 0 && choice <= matchingSongs.size()) {
+            String selectedSong = matchingSongs.get(choice - 1);
+            for (int i = 0; i < songs.size(); i++) {
+                String path = songs.get(i);
+                String fileName = Paths.get(path).getFileName().toString();
+
+                if (fileName.equals(selectedSong)) {
+                    currentIndex = i;
+                    try {
+                        playCurrentSong();
+                    } catch (IOException e) {
+                        System.err.println("Error playing the song: " + e.getMessage());
+                    }
+                    return true;
+                }
+            }
+        } else {
+            System.out.println("Invalid choice.");
+        }
+
         return false;
     }
 
