@@ -4,11 +4,14 @@ import com.odyssey.components.utils.FileLoader;
 import com.odyssey.controllers.MainController;
 import com.odyssey.services.PlaylistService;
 
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Scanner;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public class CommandHandler {
@@ -25,7 +28,7 @@ public class CommandHandler {
         this.favouriteManager = new FavouriteManager(baseDirectory);
     }
 
-    public void handleCommand(String input, PlaylistManager playlistManager, String currentDirectory) {
+    public void handleCommand(String input, PlaylistManager playlistManager, String currentDirectory, String username) {
         try {
             if (input.isEmpty()) {
                 mainController.handleInput("stop");
@@ -49,7 +52,9 @@ public class CommandHandler {
                 handleFavouriteCommand();
             } else if (input.equalsIgnoreCase("l")) {
                 handleListFavouritesCommand();
-            } else {
+            }else if(input.equalsIgnoreCase("m")){
+                handleMembership(username);
+            }else {
                 mainController.handleInput(input);
             }
         } catch (IOException e) {
@@ -183,6 +188,84 @@ public class CommandHandler {
             System.out.println("Invalid switch command. Use 'switch [playlist name]'.");
         }
     }
+
+
+    private static final String LOGIN_FILE = "src/main/resources/login.txt";
+
+    public void handleMembership(String username) {
+        List<String> updatedLines = new ArrayList<>();
+        boolean userFound = false;
+
+        try (BufferedReader reader = new BufferedReader(new FileReader(LOGIN_FILE))) {
+            String line;
+
+            while ((line = reader.readLine()) != null) {
+                String[] credentials = line.split(",");
+
+                if (credentials.length == 3 && credentials[0].trim().equals(username)) {
+                    if (credentials[2].trim().equals("false")) {
+                        // Prompt for payment details
+                        if (collectPaymentDetails()) {
+                            credentials[2] = "true"; // Update false to true
+                            userFound = true;
+                        } else {
+                            System.out.println("Payment failed. Membership not updated.");
+                            return;
+                        }
+                    }
+                }
+
+                updatedLines.add(String.join(",", credentials));
+            }
+        } catch (IOException e) {
+            System.err.println("Error reading login file: " + e.getMessage());
+            return;
+        }
+
+        if (!userFound) {
+            System.out.println("Username not found or already a member.");
+            return;
+        }
+
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(LOGIN_FILE))) {
+            for (String updatedLine : updatedLines) {
+                writer.write(updatedLine);
+                writer.newLine();
+            }
+            System.out.println("Membership status updated successfully!");
+        } catch (IOException e) {
+            System.err.println("Error writing to login file: " + e.getMessage());
+        }
+    }
+
+    private boolean collectPaymentDetails() {
+        Scanner scanner = new Scanner(System.in);
+
+        System.out.print("Enter Credit Card Number (16 digits): ");
+        String cardNumber = scanner.nextLine();
+        if (!Pattern.matches("\\d{16}", cardNumber)) {
+            System.out.println("Invalid card number format.");
+            return false;
+        }
+
+        System.out.print("Enter Expiry Date (MM/YY): ");
+        String expiryDate = scanner.nextLine();
+        if (!Pattern.matches("(0[1-9]|1[0-2])/(\\d{2})", expiryDate)) {
+            System.out.println("Invalid expiry date format.");
+            return false;
+        }
+
+        System.out.print("Enter CVC (3 digits): ");
+        String cvc = scanner.nextLine();
+        if (!Pattern.matches("\\d{3}", cvc)) {
+            System.out.println("Invalid CVC format.");
+            return false;
+        }
+
+        System.out.println("Payment successful!");
+        return true;
+    }
+
 
     public String getNewDirectory() {
         return newDirectory;

@@ -68,7 +68,7 @@ public class Main {
                 displayCommands(directory, isPremiumed);
 
                 String input = scanner.nextLine();
-                commandHandler.handleCommand(input, playlistManager, currentDirectory);
+                commandHandler.handleCommand(input, playlistManager, currentDirectory, username);
 
                 if (input.isEmpty()) {
                     break;
@@ -101,6 +101,10 @@ public class Main {
             System.out.println("Create a new Playlist -> 'create [playlist name]'");
             System.out.println("Delete a Playlist -> 'delete [playlist name]'");
             System.out.println("Switch Playlist -> 'switch [playlist name]'");
+        }else{
+            System.out.println("-------------------------------------");
+            System.out.println("To get a membership ($5 only) enter -> 'm'");
+            System.out.println("-------------------------------------");
         }
 
         System.out.println("Stop -> Press Enter");
