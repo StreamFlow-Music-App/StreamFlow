@@ -3,6 +3,13 @@ package com.odyssey.components;
 import com.odyssey.components.utils.FileLoader;
 import com.odyssey.controllers.MainController;
 import com.odyssey.services.PlaylistService;
+import com.odyssey.components.Song;
+import com.odyssey.components.StateManager;
+import com.odyssey.services.ShuffleService;
+import com.odyssey.components.SongFilter;
+import com.odyssey.services.HistoryService;
+import com.odyssey.services.SortService;
+
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -54,12 +61,23 @@ public class CommandHandler {
                 mainController.resetState();
             } else if (input.equalsIgnoreCase("l")) {
                 handleListFavouritesCommand();
+            } else if (input.equalsIgnoreCase("sort")) {
+                handleListFavouritesCommand();
+            } else if (input.startsWith("sort ")) { // Handle sort command
+                String[] parts = input.split(" ", 2); // Split into "sort" and the sort option
+                if (parts.length == 2) {
+                    mainController.sortSongs(parts[1]); // Pass the sort option (e.g., "title", "artist", "album")
+                } else {
+                    System.out.println("Invalid sort command. Use 'sort [title/artist/album]'.");
+                }
             } else {
                 mainController.handleInput(input);
             }
         } catch (IOException e) {
             System.err.println("Error processing command: " + e.getMessage());
         }
+
+
     }
 
     private void handleFavouriteCommand() throws IOException {
@@ -267,6 +285,7 @@ public class CommandHandler {
     public String getNewDirectory() {
         return newDirectory;
     }
+
 
 
 }

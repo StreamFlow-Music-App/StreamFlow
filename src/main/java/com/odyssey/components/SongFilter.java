@@ -41,7 +41,7 @@ public class SongFilter {
         if (parts.length > 3) {
             return parts[3]; // Artist name is the 4th part of the path
         }
-        return "Unknown Artist";
+        return "Default Artist";
     }
 
     private String extractGenreFromPath(String songPath) {
@@ -53,7 +53,7 @@ public class SongFilter {
         if (fileName.contains(" - ")) {
             return fileName.split(" - ")[1].replace(".mp3", ""); // Extract artist name
         }
-        return "Unknown Artist";
+        return "Default Artist";
     }
 
     private String extractAlbumFromPath(String songPath) {
@@ -62,7 +62,7 @@ public class SongFilter {
         if (parts.length > 4) {
             return parts[4]; // Album name is the 5th part of the path
         }
-        return "Unknown Album";
+        return "Default Album";
     }
 
     private String extractSongNameFromFileName(String songPath) {
