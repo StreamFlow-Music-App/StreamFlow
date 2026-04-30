@@ -1,0 +1,40 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Build StreamFlow",
+			"type": "shell",
+			"command": "mvn",
+			"args": ["compile"],
+			"group": "build",
+			"problemMatcher": []
+		},
+		{
+			"label": "Run StreamFlow",
+			"type": "shell",
+			"command": "java",
+			"args": [
+				"-cp",
+				"target/classes;${env:USERPROFILE}\\.m2\\repository\\javazoom\\jlayer\\1.0.1\\jlayer-1.0.1.jar",
+				"com.odyssey.Main"
+			],
+			"group": "test",
+			"dependsOn": "Build StreamFlow",
+			"problemMatcher": []
+		},
+		{
+			"label": "Build and Run StreamFlow",
+			"type": "shell",
+			"command": "mvn",
+			"args": ["compile", "&&", "java", "-cp", "target/classes;${env:USERPROFILE}\\.m2\\repository\\javazoom\\jlayer\\1.0.1\\jlayer-1.0.1.jar", "com.odyssey.Main"],
+			"group": "build",
+			"problemMatcher": [],
+			"options": {
+				"shell": {
+					"executable": "cmd.exe",
+					"args": ["/c"]
+				}
+			}
+		}
+	]
+}
