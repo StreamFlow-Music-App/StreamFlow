@@ -3,3 +3,4 @@ fahim,1212,true
 siam,4321,false
 nayef,9876,false
 farhan,1234,false
+test,1234,true

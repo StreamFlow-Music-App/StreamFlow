@@ -295,16 +295,8 @@ public class Main {
         System.out.print(BOLD + BLUE + "Choose a username: " + RESET);
         String username = scanner.nextLine();
 
-        Console console = System.console();
-        String password;
-        if (console == null) {
-            System.err.println("Console not available. Password will not be masked.");
-            System.out.print(BOLD + BLUE + "Choose a password: " + RESET);
-            password = scanner.nextLine();
-        } else {
-            char[] passwordChars = console.readPassword(BOLD + BLUE + "Choose a password: " + RESET);
-            password = new String(passwordChars);
-        }
+        System.out.print(BOLD + BLUE + "Choose a password: " + RESET);
+        String password = scanner.nextLine();
 
         try (BufferedWriter writer = new BufferedWriter(new FileWriter("src/resources/login.txt", true))) {
             writer.write(username + "," + password + ",false\n");
@@ -312,7 +304,6 @@ public class Main {
         } catch (IOException e) {
             System.err.println(RED + "Error writing to login file: " + e.getMessage() + RESET);
         }
-
 
         System.out.println(CYAN + "════════════════════════════════════" + RESET);
 
